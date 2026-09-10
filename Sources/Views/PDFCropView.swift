@@ -78,7 +78,7 @@ struct PDFCropView: View {
                             .frame(width: r, height: keptH)
                             .offset(x: frame.maxX - r, y: frame.minY + t)
                         // Kept area outline.
-                        Rectangle().strokeBorder(Color.accentColor, lineWidth: 2)
+                        Rectangle().strokeBorder(Color.appAccent, lineWidth: 2)
                             .frame(width: keptW, height: keptH)
                             .offset(x: frame.minX + l, y: frame.minY + t)
                     }

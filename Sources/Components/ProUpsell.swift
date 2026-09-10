@@ -106,9 +106,8 @@ struct ProUpsellView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Image(systemName: tool.symbol)
-                            .foregroundStyle(Color.accentColor)
+                    HStack(spacing: 10) {
+                        IconTile(symbol: tool.symbol, tint: .appAccent, size: 30)
                         Text(tool.title)
                             .appFont(.title2, weight: .bold)
                         ProBadge()
@@ -131,8 +130,7 @@ struct ProUpsellView: View {
                 }
                 .padding(14)
                 .frame(maxWidth: 460, alignment: .leading)
-                .background(Color(.controlBackgroundColor))
-                .cornerRadius(10)
+                .cardStyle()
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Unlock \(tool.title) with MacHub Pro")
@@ -148,6 +146,7 @@ struct ProUpsellView: View {
                                 Text("Unlock Pro")
                             }
                             .buttonStyle(.borderedProminent)
+                            .tint(.proAccent)
 
                             Button(action: openLicenseSettings) {
                                 Text("I already have a license")
@@ -167,7 +166,7 @@ struct ProUpsellView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.accentColor.opacity(0.08))
+                .background(Color.proAccent.opacity(0.08))
                 .cornerRadius(10)
 
                 Spacer()
@@ -196,8 +195,8 @@ struct ProBadge: View {
             .appFont(.caption2, weight: .bold)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Color.accentColor.opacity(0.18))
-            .foregroundStyle(Color.accentColor)
+            .background(Color.proAccent.opacity(0.18))
+            .foregroundStyle(Color.proAccent)
             .clipShape(Capsule())
     }
 }

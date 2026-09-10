@@ -44,45 +44,61 @@ struct ToolScaffold<Options: View, Preview: View>: View {
                         Text(subtitle).appFont(.subheadline).foregroundStyle(.secondary)
                     }
 
-                    DropWell(model: model)
-                    if !model.files.isEmpty { FileList(model: model) }
-                    options()
-                    OutputPicker(model: model)
+                    VStack(alignment: .leading, spacing: 14) {
+                        DropWell(model: model)
+                        if !model.files.isEmpty { FileList(model: model) }
+                    }
+                    .cardStyle()
 
-                    HStack(spacing: 12) {
-                        Button(action: onRun) {
-                            if model.isRunning { ProgressView().controlSize(.small) }
-                            else { Text(runLabel) }
-                        }
-                        .keyboardShortcut(.return, modifiers: .command)
-                        .disabled(model.files.isEmpty || model.isRunning)
-                        .buttonStyle(.borderedProminent)
+                    if Options.self != EmptyView.self {
+                        options()
+                            .cardStyle()
+                    } else {
+                        options()
+                    }
 
-                        if let label = secondaryLabel, let action = onSecondary {
-                            Button(action: action) { Text(label) }
-                                .keyboardShortcut(.return, modifiers: [.command, .shift])
-                                .disabled(model.isRunning)
+                    VStack(alignment: .leading, spacing: 14) {
+                        OutputPicker(model: model)
+
+                        HStack(spacing: 12) {
+                            Button(action: onRun) {
+                                if model.isRunning { ProgressView().controlSize(.small) }
+                                else { Text(runLabel) }
+                            }
+                            .keyboardShortcut(.return, modifiers: .command)
+                            .disabled(model.files.isEmpty || model.isRunning)
+                            .buttonStyle(.borderedProminent)
+                            .tint(.appAccent)
+
+                            if let label = secondaryLabel, let action = onSecondary {
+                                Button(action: action) { Text(label) }
+                                    .keyboardShortcut(.return, modifiers: [.command, .shift])
+                                    .disabled(model.isRunning)
+                            }
+
+                            if model.isRunning {
+                                Button("Cancel") { model.cancel() }
+                            } else if !model.files.isEmpty {
+                                Button(clearLabel) { onClear?() ?? model.clear() }
+                            }
+                            Spacer()
                         }
 
                         if model.isRunning {
-                            Button("Cancel") { model.cancel() }
-                        } else if !model.files.isEmpty {
-                            Button(clearLabel) { onClear?() ?? model.clear() }
+                            HStack(spacing: 8) {
+                                ProgressView(value: model.progress).tint(.appAccent).frame(width: 220)
+                                Text("\(Int(model.progress * 100))%")
+                                    .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
+                            }
+                            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: model.progress)
                         }
-                        Spacer()
-                    }
 
-                    if model.isRunning {
-                        HStack(spacing: 8) {
-                            ProgressView(value: model.progress).frame(width: 220)
-                            Text("\(Int(model.progress * 100))%")
-                                .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
-                        }
+                        ResultBar(model: model)
                     }
-
-                    ResultBar(model: model)
+                    .cardStyle()
                 }
                 .padding(20)
+                .animation(.spring(response: 0.35, dampingFraction: 0.85), value: model.files)
             }
             .frame(minWidth: 340, maxWidth: .infinity, alignment: .leading)
             .onReceive(NotificationCenter.default.publisher(for: .runTool)) { _ in
@@ -247,13 +263,14 @@ struct DropWell: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(targeted ? Color.accentColor.opacity(0.12) : Color.gray.opacity(0.06))
+                .fill(targeted ? Color.appAccent.opacity(0.14) : Color.appAccent.opacity(0.06))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6]))
-                .foregroundStyle(targeted ? Color.accentColor : Color.gray.opacity(0.4))
+                .foregroundStyle(targeted ? Color.appAccent : Color.gray.opacity(0.4))
         )
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: targeted)
         .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
             handleDrop(providers); return true
         }
@@ -333,9 +350,10 @@ struct FileList: View {
         }
         .padding(.vertical, 4).padding(.horizontal, 8)
         .background(RoundedRectangle(cornerRadius: 6)
-            .fill(isSel ? Color.accentColor : Color.clear))
+            .fill(isSel ? Color.appAccent : Color.clear))
         .contentShape(Rectangle())
         .onTapGesture { model.selected = isSel ? nil : url }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSel)
         .listRowInsets(EdgeInsets(top: 1, leading: 4, bottom: 1, trailing: 4))
     }
 
@@ -392,8 +410,15 @@ struct ResultBar: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("\(result.outputs.count) file\(result.outputs.count == 1 ? "" : "s") created",
                           systemImage: "checkmark.circle.fill")
+                        .appFont(.headline)
                         .foregroundStyle(.green)
-                    ForEach(result.messages, id: \.self) { Text($0).appFont(.caption).foregroundStyle(.secondary) }
+                    // Result messages often carry the number that matters most
+                    // (a size delta, a page count) — bump them a size up and
+                    // bold, matching the typography-hierarchy treatment used
+                    // for every other "the number is the point" row.
+                    ForEach(result.messages, id: \.self) {
+                        Text($0).appFont(.callout, weight: .semibold).foregroundStyle(.primary)
+                    }
                     ForEach(result.failures, id: \.self) {
                         Text($0).appFont(.caption).foregroundStyle(.orange)
                     }

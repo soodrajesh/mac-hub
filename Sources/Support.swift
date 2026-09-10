@@ -2,6 +2,70 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// MacHub's identity color — amber/orange, matching the app icon's gradient
+/// start. See DESIGN-SYSTEM.md's v2 "modern & colorful" refresh: each app in
+/// the mac-apps line now carries its own accent color instead of defaulting
+/// to the system accent everywhere. Used on primary actions, tinted sidebar
+/// icon tiles, selection highlights, and progress indicators — `Color
+/// .accentColor` (the system accent) is still used for the handful of spots
+/// that should genuinely follow the user's own macOS accent color choice.
+extension Color {
+    static let appAccent = Color(red: 0.95, green: 0.55, blue: 0.10)
+
+    /// A distinct warm-but-not-amber tone for the "PRO" badge/upsell accents
+    /// only, so Pro branding doesn't visually merge into the app's own
+    /// amber accent color used everywhere else.
+    static let proAccent = Color(red: 0.83, green: 0.22, blue: 0.48)
+}
+
+/// Shared card container for grouping related content — see
+/// DESIGN-SYSTEM.md point 3 ("Card-based content, real depth"). Rounded
+/// corners, a subtle shadow, a hairline separator stroke, and 16pt padding,
+/// replacing the flat panels this app used before v2.
+struct CardBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.background)
+                    .shadow(color: .black.opacity(0.08), radius: 1, y: 1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(Color(.separatorColor).opacity(0.5), lineWidth: 1)
+            )
+    }
+}
+
+extension View {
+    /// Wraps content in a rounded, softly-shadowed card — see `CardBackground`.
+    func cardStyle() -> some View {
+        modifier(CardBackground())
+    }
+}
+
+/// A small tinted rounded-square icon tile — wraps a bare SF Symbol the way
+/// System Settings' own sidebar does, instead of leaving it sitting directly
+/// on the background. See DESIGN-SYSTEM.md point 1; this is the single
+/// highest-impact change for MacHub's long, previously-plain sidebar list.
+struct IconTile: View {
+    let symbol: String
+    var tint: Color = .appAccent
+    var size: CGFloat = 22
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
+            .fill(tint.opacity(0.15))
+            .frame(width: size, height: size)
+            .overlay(
+                Image(systemName: symbol)
+                    .font(.system(size: size * 0.55, weight: .medium))
+                    .foregroundStyle(tint)
+            )
+    }
+}
+
 /// The app's Text Size setting, in points-per-style plus a per-view
 /// `.appFont(_:weight:)` modifier — deliberately *not* SwiftUI's
 /// `.dynamicTypeSize`/`Font.TextStyle`, because Dynamic Type is an iOS/

@@ -37,10 +37,11 @@ struct MacHubApp: App {
                                             if tool.isPro { ProBadge() }
                                         }
                                     } icon: {
-                                        Image(systemName: tool.symbol)
+                                        IconTile(symbol: tool.symbol, tint: .appAccent, size: 22)
                                     }
                                     .tag(tool)
                                 }
+                                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selection)
                             }
                         } header: {
                             sectionHeader(section.name)
@@ -52,8 +53,12 @@ struct MacHubApp: App {
             } detail: {
                 detail(for: selection)
                     .frame(minWidth: 560, minHeight: 460)
+                    .id(selection)
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selection)
             }
             .navigationTitle("MacHub")
+            .tint(.appAccent)
             .preferredColorScheme(appearanceMode.colorScheme)
             .environment(\.textScale, textSize.scaleFactor)
             .environment(\.isProLicensed, isProLicensed)
@@ -87,6 +92,7 @@ struct MacHubApp: App {
 
         Settings {
             SettingsView()
+                .tint(.appAccent)
                 .preferredColorScheme(appearanceMode.colorScheme)
         }
     }

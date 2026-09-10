@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-11
+
+- v2 UI refresh — modern colorful design system: tinted icon tiles across the
+  sidebar, card layouts, amber accent color, improved light mode.
+
 ## 2026-09-10
 
 - Renamed from MacPress to MacHub (second rename in this line — Toolbox →

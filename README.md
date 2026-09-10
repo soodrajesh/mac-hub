@@ -6,6 +6,10 @@ Downloader tool (downloads videos from the web as requested).
 
 ![MacHub screenshot](docs/screenshot.png)
 
+_2026-09-11: v2 visual refresh — tinted icon tiles throughout the sidebar,
+card-based tool panels, a new amber accent color, and an audited light mode.
+See CHANGELOG.md._
+
 ## Free vs. MacHub Pro
 
 MacHub has the largest free tier of the line and, deliberately, the biggest

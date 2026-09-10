@@ -226,7 +226,7 @@ struct CollageView: View {
             }
         }
         .opacity(el.opacity)
-        .overlay(isSel ? Rectangle().strokeBorder(Color.accentColor, lineWidth: 2) : nil)
+        .overlay(isSel ? Rectangle().strokeBorder(Color.appAccent, lineWidth: 2) : nil)
         .rotationEffect(.radians(Double(el.rotation)))
         .position(c)
         .gesture(moveGesture(it, dW: dW, dH: dH))
@@ -244,7 +244,7 @@ struct CollageView: View {
 
     private func handle(_ system: String) -> some View {
         Image(systemName: system).font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
-            .frame(width: 18, height: 18).background(Circle().fill(Color.accentColor))
+            .frame(width: 18, height: 18).background(Circle().fill(Color.appAccent))
             .overlay(Circle().strokeBorder(.white, lineWidth: 1))
     }
 
