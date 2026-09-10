@@ -79,9 +79,10 @@ private struct ScaledFontModifier: ViewModifier {
     @Environment(\.textScale) private var scale
     let style: AppFontStyle
     let weight: Font.Weight?
+    var design: Font.Design = .default
 
     func body(content: Content) -> some View {
-        content.font(.system(size: style.basePointSize * scale, weight: weight ?? style.defaultWeight))
+        content.font(.system(size: style.basePointSize * scale, weight: weight ?? style.defaultWeight, design: design))
     }
 }
 
@@ -91,6 +92,14 @@ extension View {
     /// `Font.TextStyle` for Settings' Text Size to have any real effect.
     func appFont(_ style: AppFontStyle, weight: Font.Weight? = nil) -> some View {
         modifier(ScaledFontModifier(style: style, weight: weight))
+    }
+
+    /// Same as `appFont`, but monospaced — for code/URL/output text that
+    /// still needs to respond to the Text Size setting. Covers the cases
+    /// that used to fall back to raw `.font(.system(.body, design:
+    /// .monospaced))`, which doesn't scale with `textScale`.
+    func appFont(_ style: AppFontStyle, weight: Font.Weight? = nil, design: Font.Design) -> some View {
+        modifier(ScaledFontModifier(style: style, weight: weight, design: design))
     }
 }
 

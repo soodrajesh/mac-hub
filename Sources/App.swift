@@ -8,6 +8,12 @@ struct ToolboxApp: App {
     @State private var collapsedSections: Set<String> =
         Set(UserDefaults.standard.stringArray(forKey: ToolboxApp.collapsedSectionsKey) ?? [])
 
+    // Tool-switch discard confirmation (Collage Freeform / Organize Pages) —
+    // see UnsavedWorkTracker's doc comment.
+    @StateObject private var unsavedWork = UnsavedWorkTracker()
+    @State private var pendingSelection: Tool?
+    @State private var showDiscardConfirm = false
+
     @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system
     @AppStorage("textSize") private var textSize = TextSizeSetting.medium
 
@@ -20,7 +26,7 @@ struct ToolboxApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationSplitView {
-                List(selection: $selection) {
+                List(selection: selectionBinding) {
                     ForEach(Tool.sections, id: \.name) { section in
                         Section {
                             if !collapsedSections.contains(section.name) {
@@ -51,6 +57,13 @@ struct ToolboxApp: App {
             .preferredColorScheme(appearanceMode.colorScheme)
             .environment(\.textScale, textSize.scaleFactor)
             .environment(\.isProLicensed, isProLicensed)
+            .environmentObject(unsavedWork)
+            .alert("Discard \(unsavedWork.description)?", isPresented: $showDiscardConfirm) {
+                Button("Cancel", role: .cancel) { pendingSelection = nil }
+                Button("Discard", role: .destructive) { confirmDiscardAndSwitch() }
+            } message: {
+                Text("Switching tools now will discard it — it hasn't been saved.")
+            }
             // `.task(id:)`, not `.onAppear` — `onAppear` can refire when a
             // system permission dialog interrupts and restores the window,
             // silently re-triggering verification each time. `.task(id:)`
@@ -76,6 +89,35 @@ struct ToolboxApp: App {
             SettingsView()
                 .preferredColorScheme(appearanceMode.colorScheme)
         }
+    }
+
+    /// Tools whose in-progress state is worth protecting with a discard
+    /// prompt — see `UnsavedWorkTracker`.
+    private static let discardWarningTools: Set<Tool> = [.collage, .pdfOrganize]
+
+    /// Wraps `selection` so a switch away from a tool with unsaved,
+    /// meaningful in-progress work (Collage Freeform, Organize Pages) asks
+    /// for confirmation instead of silently discarding it.
+    private var selectionBinding: Binding<Tool> {
+        Binding(
+            get: { selection },
+            set: { newValue in
+                guard newValue != selection else { return }
+                if unsavedWork.hasUnsavedWork, Self.discardWarningTools.contains(selection) {
+                    pendingSelection = newValue
+                    showDiscardConfirm = true
+                } else {
+                    selection = newValue
+                    unsavedWork.hasUnsavedWork = false
+                }
+            }
+        )
+    }
+
+    private func confirmDiscardAndSwitch() {
+        if let pending = pendingSelection { selection = pending }
+        unsavedWork.hasUnsavedWork = false
+        pendingSelection = nil
     }
 
     private func verifyLicense() async {

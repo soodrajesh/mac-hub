@@ -68,7 +68,7 @@ struct OCRView: View {
 
                 if output == .text && !text.isEmpty {
                     TextEditor(text: .constant(text))
-                        .font(.system(.body, design: .monospaced))
+                        .appFont(.body, design: .monospaced)
                         .frame(minHeight: 260)
                         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.gray.opacity(0.3)))
                 }

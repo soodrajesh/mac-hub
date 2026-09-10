@@ -142,16 +142,27 @@ struct ProUpsellView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: 460, alignment: .leading)
 
-                    HStack(spacing: 10) {
-                        Button(action: openPurchasePage) {
-                            Text("Unlock Pro")
-                        }
-                        .buttonStyle(.borderedProminent)
+                    if ToolboxLicenseConfig.isConfigured {
+                        HStack(spacing: 10) {
+                            Button(action: openPurchasePage) {
+                                Text("Unlock Pro")
+                            }
+                            .buttonStyle(.borderedProminent)
 
-                        Button(action: openLicenseSettings) {
-                            Text("I already have a license")
+                            Button(action: openLicenseSettings) {
+                                Text("I already have a license")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.bordered)
+                    } else {
+                        // Placeholder Polar org/checkout URL — see
+                        // ToolboxLicenseConfig's TODOs. Say so plainly
+                        // instead of showing a button to a dead checkout
+                        // link or letting a real key 404 and read as
+                        // "invalid."
+                        Label("Toolbox Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
+                            .appFont(.callout)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(16)

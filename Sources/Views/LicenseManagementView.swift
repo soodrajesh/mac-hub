@@ -72,13 +72,19 @@ struct LicenseManagementView: View {
                     .help("Remove stored license key")
                 }
 
-                if !isLicenseActive {
+                if !isLicenseActive && ToolboxLicenseConfig.isConfigured {
                     Button(action: openPurchasePage) {
                         Text("Get Toolbox Pro")
                             .appFont(.body)
                     }
                     .buttonStyle(.borderedProminent)
                 }
+            }
+
+            if !ToolboxLicenseConfig.isConfigured {
+                Label("Toolbox Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
+                    .appFont(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .sheet(isPresented: $showLicenseEntry) {
@@ -159,7 +165,7 @@ struct LicenseEntrySheet: View {
                     .foregroundStyle(.secondary)
 
                 TextEditor(text: $licenseKey)
-                    .font(.system(.body, design: .monospaced))
+                    .appFont(.body, design: .monospaced)
                     .frame(height: 100)
                     .padding(8)
                     .background(Color(.controlBackgroundColor))

@@ -42,6 +42,17 @@ enum ToolboxLicenseConfig {
     /// Bundle-id-scoped `@AppStorage` key for the stored license key —
     /// matches `com.rajeshsood.toolbox` from Info.plist/build.sh.
     static let licenseKeyStorageKey = "com.rajeshsood.toolbox.licenseKey"
+
+    /// False until both TODOs above are filled in with real values. Checked
+    /// before every verify attempt and before offering the purchase link,
+    /// so a not-yet-configured product fails with a distinct, honest
+    /// message ("isn't available for purchase yet") instead of the normal
+    /// "invalid license key" a real customer's real key would otherwise
+    /// see once this org exists but is still misconfigured — see
+    /// `LicenseCheckError.notYetConfigured`.
+    static var isConfigured: Bool {
+        !organizationId.hasPrefix("TODO") && !purchaseURL.contains("TODO")
+    }
 }
 
 /// Local, tamper-evident cache for verified license state. See
@@ -242,6 +253,7 @@ private enum LicenseCheckOutcomeReporter {
         case .codingError: return "codingError"
         case .unknown: return "unknown"
         case .wrongProduct: return "wrongProduct"
+        case .notYetConfigured: return "notYetConfigured"
         }
     }
 }
@@ -258,9 +270,12 @@ enum LicenseCheckError: LocalizedError {
     case codingError(Error)
     case unknown(String)
     case wrongProduct
+    case notYetConfigured
 
     var errorDescription: String? {
         switch self {
+        case .notYetConfigured:
+            return "Toolbox Pro isn't available for purchase yet — check back soon."
         case .invalidLicenseKey:
             return "The license key is invalid or not recognized."
         case .networkError(let error):
@@ -353,6 +368,12 @@ final class LicenseChecker {
         useCache: Bool = true,
         cacheDuration: TimeInterval = 7 * 24 * 3600
     ) async throws -> License {
+        // Fails distinctly and immediately, before touching the network or
+        // the cache — see `ToolboxLicenseConfig.isConfigured`'s doc comment.
+        guard ToolboxLicenseConfig.isConfigured else {
+            throw LicenseCheckError.notYetConfigured
+        }
+
         let trimmedKey = licenseKey.trimmingCharacters(in: .whitespaces)
 
         return try await VerifyLock.shared.run(key: trimmedKey) { [self] in

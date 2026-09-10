@@ -2,6 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct CollageView: View {
+    @EnvironmentObject private var unsavedWork: UnsavedWorkTracker
     @StateObject private var model = JobModel(types: [.image])
     @State private var layout: CollageService.Layout = .grid
     @State private var columns = 2
@@ -92,6 +93,17 @@ struct CollageView: View {
         }
         }
         .onChange(of: model.files) { _ in updatePreview(); sync() }
+        .onChange(of: items.count) { _ in updateUnsavedWork() }
+        .onChange(of: layout) { _ in updateUnsavedWork() }
+    }
+
+    /// Freeform poster layouts (drag/resize/rotate placed elements) have no
+    /// save/draft state — see `UnsavedWorkTracker`'s doc comment. Grid/strip
+    /// mode isn't tracked: it's just a file selection, nothing is lost by
+    /// switching away since the source images aren't touched.
+    private func updateUnsavedWork() {
+        unsavedWork.hasUnsavedWork = isFreeform && !items.isEmpty
+        if unsavedWork.hasUnsavedWork { unsavedWork.description = "your in-progress poster" }
     }
 
     // MARK: Controls
@@ -368,6 +380,7 @@ struct CollageView: View {
         do { try ImageService.write(img, to: out, format: .png, quality: 1)
             var r = JobResult(); r.outputs.append(out); r.messages.append("Exported \(img.width)×\(img.height)")
             model.result = r
+            unsavedWork.hasUnsavedWork = false
         } catch { model.error = error.localizedDescription }
     }
 

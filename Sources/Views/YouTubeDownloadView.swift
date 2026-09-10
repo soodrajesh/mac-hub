@@ -31,7 +31,7 @@ struct YouTubeDownloadView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Paste video URLs (one per line)").appFont(.callout).foregroundStyle(.secondary)
                     TextEditor(text: $pastedURLs)
-                        .font(.system(.body, design: .monospaced))
+                        .appFont(.body, design: .monospaced)
                         .frame(height: 80)
                         .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.gray.opacity(0.3)))
 

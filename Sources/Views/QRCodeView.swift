@@ -45,7 +45,7 @@ struct QRCodeView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Content").appFont(.callout).foregroundStyle(.secondary)
                 TextEditor(text: $text)
-                    .font(.system(.body, design: .monospaced))
+                    .appFont(.body, design: .monospaced)
                     .frame(height: 80)
                     .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.gray.opacity(0.3)))
             }
@@ -90,7 +90,7 @@ struct QRCodeView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(decoded.payload).textSelection(.enabled)
-                            .font(.system(.body, design: .monospaced))
+                            .appFont(.body, design: .monospaced)
                         Text(decoded.symbology).appFont(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()

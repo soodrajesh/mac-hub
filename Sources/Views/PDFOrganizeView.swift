@@ -31,66 +31,77 @@ private struct PageDropDelegate: DropDelegate {
 }
 
 struct PDFOrganizeView: View {
+    @EnvironmentObject private var unsavedWork: UnsavedWorkTracker
     @StateObject private var model = JobModel(types: [.pdf], multiple: false)
     @State private var pages: [PageItem] = []
     @State private var trash: [PageItem] = []
     @State private var draggingID: UUID?
     @State private var info: [MetadataField] = []
+    /// True once the working order has been touched (reorder/rotate/
+    /// remove/restore) since the last load or save — see
+    /// `UnsavedWorkTracker`'s doc comment.
+    @State private var isDirty = false
 
     private let columns = [GridItem(.adaptive(minimum: 128, maximum: 160), spacing: 14)]
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header("Organize Pages",
-                       "Visually reorder, rotate, or remove pages, then save as a new PDF. Drag a thumbnail to move it.")
+        ToolScaffold(
+            title: "Organize Pages",
+            subtitle: "Visually reorder, rotate, or remove pages, then save as a new PDF. Drag a thumbnail to move it.",
+            model: model,
+            runLabel: "Save as New PDF",
+            onRun: run,
+            previewVisible: !pages.isEmpty || !trash.isEmpty,
+            secondaryLabel: (!pages.isEmpty || !trash.isEmpty) ? "Reset" : nil,
+            onSecondary: (!pages.isEmpty || !trash.isEmpty) ? loadPages : nil,
+            onClear: clearAll,
+            preview: { pagesPane },
+            options: { MetadataPanel(fields: info) }
+        )
+        .onChange(of: model.files) { _ in
+            loadPages()
+            info = model.files.first.map { FileInfoService.pdfFields($0) } ?? []
+        }
+        .onChange(of: isDirty) { dirty in
+            unsavedWork.hasUnsavedWork = dirty
+            if dirty { unsavedWork.description = "your in-progress page order" }
+        }
+    }
 
-                DropWell(model: model)
-                if !model.files.isEmpty { FileList(model: model) }
-                MetadataPanel(fields: info)
+    // MARK: Preview pane (page grid + trash tray)
 
-                if !pages.isEmpty || !trash.isEmpty {
-                    if !pages.isEmpty {
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(pages) { item in
-                                cell(item)
-                                    .onDrag { draggingID = item.id; return NSItemProvider(object: item.id.uuidString as NSString) }
-                                    .onDrop(of: [.text], delegate: PageDropDelegate(target: item, pages: $pages, draggingID: $draggingID))
-                            }
+    @ViewBuilder
+    private var pagesPane: some View {
+        if pages.isEmpty && trash.isEmpty {
+            Text("Add a PDF to begin.").foregroundStyle(.secondary)
+        } else {
+            VStack(alignment: .leading, spacing: 14) {
+                if !pages.isEmpty {
+                    LazyVGrid(columns: columns, spacing: 14) {
+                        ForEach(pages) { item in
+                            cell(item)
+                                .onDrag { draggingID = item.id; return NSItemProvider(object: item.id.uuidString as NSString) }
+                                .onDrop(of: [.text], delegate: PageDropDelegate(target: item, pages: $pages, draggingID: $draggingID))
                         }
                     }
+                    .onChange(of: pages.map(\.id)) { _ in isDirty = true }
+                }
 
-                    if !trash.isEmpty {
-                        Divider()
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Removed (\(trash.count)) — tap to restore")
-                                .appFont(.caption).foregroundStyle(.secondary)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 10) {
-                                    ForEach(trash) { item in
-                                        trashThumb(item)
-                                    }
+                if !trash.isEmpty {
+                    Divider()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Removed (\(trash.count)) — tap to restore")
+                            .appFont(.caption).foregroundStyle(.secondary)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(trash) { item in
+                                    trashThumb(item)
                                 }
                             }
                         }
                     }
-
-                    HStack(spacing: 12) {
-                        Button("Save as New PDF") { run() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(pages.isEmpty || model.isRunning)
-                        Button("Reset") { loadPages() }
-                        Spacer()
-                    }
-                    OutputPicker(model: model)
-                    ResultBar(model: model)
                 }
             }
-            .padding(20)
-        }
-        .onChange(of: model.files) { _ in
-            loadPages()
-            info = model.files.first.map { FileInfoService.pdfFields($0) } ?? []
         }
     }
 
@@ -152,20 +163,23 @@ struct PDFOrganizeView: View {
     private func rotate(_ item: PageItem) {
         guard let i = pages.firstIndex(where: { $0.id == item.id }) else { return }
         pages[i].rotation = (pages[i].rotation + 90) % 360
+        isDirty = true
     }
 
     private func remove(_ item: PageItem) {
         guard let i = pages.firstIndex(where: { $0.id == item.id }) else { return }
         trash.append(pages.remove(at: i))
+        isDirty = true
     }
 
     private func restore(_ item: PageItem) {
         guard let i = trash.firstIndex(where: { $0.id == item.id }) else { return }
         pages.append(trash.remove(at: i))
+        isDirty = true
     }
 
     private func loadPages() {
-        pages = []; trash = []
+        pages = []; trash = []; isDirty = false
         guard let url = model.files.first else { return }
         let count = PDFService.pageCount(url)
         pages = (0..<count).map { PageItem(originalIndex: $0) }
@@ -181,8 +195,14 @@ struct PDFOrganizeView: View {
         }
     }
 
+    private func clearAll() {
+        pages = []; trash = []; isDirty = false
+        model.clear()
+    }
+
     private func run() {
         guard let src = model.files.first else { return }
+        guard !pages.isEmpty else { model.error = "No pages left to save — restore at least one from Removed."; return }
         let dir = model.outputDir
         let order = pages.map { (originalIndex: $0.originalIndex, rotation: $0.rotation) }
         let count = order.count
@@ -194,12 +214,6 @@ struct PDFOrganizeView: View {
             r.messages.append("\(count) page\(count == 1 ? "" : "s") → \(out.lastPathComponent)")
             return r
         }
-    }
-
-    private func header(_ t: String, _ s: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(t).appFont(.title2, weight: .bold)
-            Text(s).appFont(.subheadline).foregroundStyle(.secondary)
-        }
+        isDirty = false
     }
 }
