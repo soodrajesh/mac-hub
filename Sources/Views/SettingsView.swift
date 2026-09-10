@@ -128,7 +128,7 @@ private struct AboutTab: View {
     var body: some View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
         VStack(alignment: .leading, spacing: 10) {
-            Text("Toolbox")
+            Text("MacPress")
                 .appFont(.headline)
             Text("Version \(version)")
                 .appFont(.callout)

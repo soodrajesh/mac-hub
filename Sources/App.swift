@@ -1,12 +1,12 @@
 import SwiftUI
 
 @main
-struct ToolboxApp: App {
+struct MacPressApp: App {
     private static let collapsedSectionsKey = "collapsedSidebarSections"
 
     @State private var selection: Tool = .pdfCompress
     @State private var collapsedSections: Set<String> =
-        Set(UserDefaults.standard.stringArray(forKey: ToolboxApp.collapsedSectionsKey) ?? [])
+        Set(UserDefaults.standard.stringArray(forKey: MacPressApp.collapsedSectionsKey) ?? [])
 
     // Tool-switch discard confirmation (Collage Freeform / Organize Pages) —
     // see UnsavedWorkTracker's doc comment.
@@ -20,7 +20,7 @@ struct ToolboxApp: App {
     // License verification for the main window. Settings verifies
     // independently (it's its own Scene, doesn't inherit this environment)
     // — see LicenseManagementView.
-    @AppStorage(ToolboxLicenseConfig.licenseKeyStorageKey) private var storedLicenseKey = ""
+    @AppStorage(MacPressLicenseConfig.licenseKeyStorageKey) private var storedLicenseKey = ""
     @State private var isProLicensed = false
 
     var body: some Scene {
@@ -53,7 +53,7 @@ struct ToolboxApp: App {
                 detail(for: selection)
                     .frame(minWidth: 560, minHeight: 460)
             }
-            .navigationTitle("Toolbox")
+            .navigationTitle("MacPress")
             .preferredColorScheme(appearanceMode.colorScheme)
             .environment(\.textScale, textSize.scaleFactor)
             .environment(\.isProLicensed, isProLicensed)

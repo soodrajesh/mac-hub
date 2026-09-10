@@ -25,9 +25,9 @@ extension EnvironmentValues {
     }
 }
 
-/// License status: whether the user has a valid Toolbox Pro license.
-/// Set by `ToolboxApp` after `.task(id: storedLicenseKey)` verifies against
-/// Polar (see `ToolboxLicenseCheck.swift`) and read by every Pro-gated tool
+/// License status: whether the user has a valid MacPress Pro license.
+/// Set by `MacPressApp` after `.task(id: storedLicenseKey)` verifies against
+/// Polar (see `MacPressLicenseCheck.swift`) and read by every Pro-gated tool
 /// view via `ProGate` (Components/ProUpsell.swift). Settings has its own
 /// independent verification (Settings is its own Scene, doesn't inherit
 /// this environment) — see `LicenseManagementView`.
@@ -170,7 +170,7 @@ func revealInFinder(_ urls: [URL]) {
 
 extension Notification.Name {
     /// Posted by ⌘O — the visible tool's drop well opens a file panel.
-    static let openFiles = Notification.Name("toolbox.openFiles")
+    static let openFiles = Notification.Name("macpress.openFiles")
     /// Posted by ⌘R — the visible batch tool runs.
-    static let runTool = Notification.Name("toolbox.runTool")
+    static let runTool = Notification.Name("macpress.runTool")
 }

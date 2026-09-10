@@ -2,11 +2,11 @@ import Foundation
 import CryptoKit
 import Security
 
-/// Toolbox Pro licensing. Structurally a direct port of mac-cleanup's
+/// MacPress Pro licensing. Structurally a direct port of mac-cleanup's
 /// `MacGroomLicenseCheck.swift` (the DESIGN-SYSTEM.md-mandated template) —
 /// same Polar.sh customer-portal License Keys API, same Keychain-backed
 /// tamper-evident cache, same `VerifyLock` serialization. NOT a shared
-/// package: Toolbox is a separate Lemon-Squeezy-era-name-but-now-Polar
+/// package: MacPress is a separate Lemon-Squeezy-era-name-but-now-Polar
 /// product from MacGroom, with its own organization ID and its own
 /// Keychain service name, so this file is intentionally a standalone copy
 /// rather than a dependency on `macgroom-license-check` (that package is
@@ -16,7 +16,7 @@ import Security
 /// ============================================================
 /// TODO — Lemon Squeezy dashboard / Polar setup, before this ships:
 /// ============================================================
-/// 1. Create a "Toolbox Pro" product in Polar.sh (polar.sh/dashboard) —
+/// 1. Create a "MacPress Pro" product in Polar.sh (polar.sh/dashboard) —
 ///    a separate product from MacGroom Pro, since this is a separate app.
 /// 2. Configure it with a License Keys benefit (Settings → Benefits →
 ///    License Keys), same as MacGroom Pro's. Leave "Limit Activations" and
@@ -24,24 +24,24 @@ import Security
 ///    `/activate` step, just repeated `/validate` calls (see
 ///    `LicenseChecker.verify` below).
 /// 3. Copy the new product's organization ID and replace
-///    `ToolboxLicenseConfig.organizationId` below (currently a placeholder,
+///    `MacPressLicenseConfig.organizationId` below (currently a placeholder,
 ///    NOT a real ID — every verify() call will 404 until this is filled in).
-/// 4. Set `ToolboxLicenseConfig.purchaseURL` to the real Polar checkout
-///    link for Toolbox Pro once the product/price is published.
+/// 4. Set `MacPressLicenseConfig.purchaseURL` to the real Polar checkout
+///    link for MacPress Pro once the product/price is published.
 /// 5. Smoke-test end-to-end with a real test-mode key, the same way
 ///    MacGroom's integration was verified live (2026-09-05) before trusting
 ///    this in production — see this file's `validateRemote` doc comment.
-enum ToolboxLicenseConfig {
-    /// TODO: replace with Toolbox Pro's real Polar.sh organization ID once
+enum MacPressLicenseConfig {
+    /// TODO: replace with MacPress Pro's real Polar.sh organization ID once
     /// that product exists. This placeholder will 404 on every check.
-    static let organizationId = "TODO_POLAR_ORG_ID_TOOLBOX_PRO"
+    static let organizationId = "TODO_POLAR_ORG_ID_MACPRESS_PRO"
 
-    /// TODO: replace with the real Polar checkout URL for Toolbox Pro.
-    static let purchaseURL = "https://TODO-polar-checkout-url-for-toolbox-pro"
+    /// TODO: replace with the real Polar checkout URL for MacPress Pro.
+    static let purchaseURL = "https://TODO-polar-checkout-url-for-macpress-pro"
 
     /// Bundle-id-scoped `@AppStorage` key for the stored license key —
-    /// matches `com.rajeshsood.toolbox` from Info.plist/build.sh.
-    static let licenseKeyStorageKey = "com.rajeshsood.toolbox.licenseKey"
+    /// matches `com.rajeshsood.macpress` from Info.plist/build.sh.
+    static let licenseKeyStorageKey = "com.rajeshsood.macpress.licenseKey"
 
     /// False until both TODOs above are filled in with real values. Checked
     /// before every verify attempt and before offering the purchase link,
@@ -62,7 +62,7 @@ enum ToolboxLicenseConfig {
 /// payload so a forged blob written by any means fails the tag check and
 /// forces re-verification instead of being trusted.
 private enum SecureLicenseCache {
-    private static let licenseService = "com.rajeshsood.toolbox.license.cache.v1"
+    private static let licenseService = "com.rajeshsood.macpress.license.cache.v1"
 
     /// Byte-masked so the real secret doesn't sit in the binary's strings
     /// table as plain readable text. This app's own key — deliberately
@@ -275,7 +275,7 @@ enum LicenseCheckError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notYetConfigured:
-            return "Toolbox Pro isn't available for purchase yet — check back soon."
+            return "MacPress Pro isn't available for purchase yet — check back soon."
         case .invalidLicenseKey:
             return "The license key is invalid or not recognized."
         case .networkError(let error):
@@ -295,7 +295,7 @@ enum LicenseCheckError: LocalizedError {
         case .unknown(let message):
             return message
         case .wrongProduct:
-            return "This license key isn't valid for Toolbox."
+            return "This license key isn't valid for MacPress."
         }
     }
 }
@@ -332,7 +332,7 @@ struct License: Codable, Equatable {
     }
 }
 
-/// Toolbox Pro's license checking service.
+/// MacPress Pro's license checking service.
 ///
 /// Uses Polar.sh's customer-portal License Keys API
 /// (`POST /v1/customer-portal/license-keys/validate`) — same endpoint
@@ -344,17 +344,17 @@ struct License: Codable, Equatable {
 /// this one) — embedding a real Polar API secret inside a distributed
 /// macOS binary would be trivially extractable anyway.
 ///
-/// Toolbox Pro's license-key benefit is expected to have both "Limit
+/// MacPress Pro's license-key benefit is expected to have both "Limit
 /// Activations" and "Limit Usage" turned off (see the TODO checklist at
 /// the top of this file), so there's no `/activate` step and no
 /// `activation_id`/`increment_usage` to track — every launch just
 /// re-validates the raw key against the organization.
 final class LicenseChecker {
-    /// Toolbox Pro's Polar.sh organization ID — see
-    /// `ToolboxLicenseConfig.organizationId` (TODO, currently a
+    /// MacPress Pro's Polar.sh organization ID — see
+    /// `MacPressLicenseConfig.organizationId` (TODO, currently a
     /// placeholder). Read from there rather than duplicated here so the
     /// one TODO comment at the top of this file is the single place to fix.
-    private static var organizationId: String { ToolboxLicenseConfig.organizationId }
+    private static var organizationId: String { MacPressLicenseConfig.organizationId }
 
     private let urlSession: URLSession
 
@@ -369,8 +369,8 @@ final class LicenseChecker {
         cacheDuration: TimeInterval = 7 * 24 * 3600
     ) async throws -> License {
         // Fails distinctly and immediately, before touching the network or
-        // the cache — see `ToolboxLicenseConfig.isConfigured`'s doc comment.
-        guard ToolboxLicenseConfig.isConfigured else {
+        // the cache — see `MacPressLicenseConfig.isConfigured`'s doc comment.
+        guard MacPressLicenseConfig.isConfigured else {
             throw LicenseCheckError.notYetConfigured
         }
 

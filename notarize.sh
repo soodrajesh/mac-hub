@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Notarizes the already-built, Developer-ID-signed Toolbox.app from build.sh,
+# Notarizes the already-built, Developer-ID-signed MacPress.app from build.sh,
 # then staples the ticket so Gatekeeper can verify it offline.
 #
 # Deliberately a separate script from build.sh: build.sh runs on every local
@@ -32,8 +32,8 @@ cd "$(dirname "$0")"
 # credentials are ever kept.
 KEYCHAIN_PROFILE="${NOTARY_PROFILE:-MacGroom-Notary}"
 
-APP="Toolbox.app"
-ZIP="/tmp/Toolbox-notarize.zip"
+APP="MacPress.app"
+ZIP="/tmp/MacPress-notarize.zip"
 
 IDENTITY=$( (security find-identity -v -p codesigning 2>/dev/null | grep '"Developer ID Application' | head -1 | sed -E 's/.*"(.+)"/\1/') || true)
 if [ -z "$IDENTITY" ]; then
