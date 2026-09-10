@@ -1,14 +1,14 @@
-# MacPress
+# MacHub
 
 Native macOS PDF & image toolkit. Pure Swift + SwiftUI, no Xcode, zero third-party
 dependencies. Offline and private — nothing leaves your Mac, except the Video
 Downloader tool (downloads videos from the web as requested).
 
-![MacPress screenshot](docs/screenshot.png)
+![MacHub screenshot](docs/screenshot.png)
 
-## Free vs. MacPress Pro
+## Free vs. MacHub Pro
 
-MacPress has the largest free tier of the line and, deliberately, the biggest
+MacHub has the largest free tier of the line and, deliberately, the biggest
 Pro tier too — of every app in the mac-apps line, this is the one with the
 most Pro-gated tools. The split:
 
@@ -20,7 +20,7 @@ most Pro-gated tools. The split:
 - Everything not listed below — Organize Pages, Sign PDF, PDF Metadata,
   Barcode/QR, OCR/Text, Transcribe, and every video/audio tool
 
-**MacPress Pro:**
+**MacHub Pro:**
 
 - Convert & Compress (batch image conversion/compression)
 - Watermark (batch)
@@ -37,7 +37,7 @@ A locked Pro tool is never hidden or silently disabled — opening it from the
 sidebar (marked with a **PRO** badge) shows exactly what it does and an
 "Unlock Pro" upsell, not a dead end.
 
-See **MacPress Pro** below for how licensing works.
+See **MacHub Pro** below for how licensing works.
 
 ## Prerequisites
 
@@ -73,11 +73,11 @@ See **MacPress Pro** below for how licensing works.
 ```
 
 `build.sh` compiles the sources, renders the app icon from an SF Symbol, bundles
-`MacPress.app`, and installs it to `/Applications`. Launch it from Launchpad /
+`MacHub.app`, and installs it to `/Applications`. Launch it from Launchpad /
 Spotlight, or:
 
 ```bash
-open /Applications/MacPress.app
+open /Applications/MacHub.app
 ```
 
 ## Compression presets (Compress PDF)
@@ -205,36 +205,36 @@ this project's non-Xcode `swiftc` build (no proper framework embedding). If a
 future macOS toolchain fixes that, it isn't necessary to fix here, so this is a
 deliberate constraint, not an oversight.
 
-## MacPress Pro
+## MacHub Pro
 
 Licensing is a separate Lemon-Squeezy-successor Polar.sh product from
-MacGroom Pro — MacPress Pro has its own organization ID, its own bundle-id-
-scoped `@AppStorage` license key (`com.rajeshsood.macpress.licenseKey`), and
+MacGroom Pro — MacHub Pro has its own organization ID, its own bundle-id-
+scoped `@AppStorage` license key (`com.rajeshsood.machub.licenseKey`), and
 its own Keychain cache namespace. It follows the exact same pattern as
 MacGroom Pro (see `mac-cleanup`'s `MacGroomLicenseCheck.swift` /
 `LicenseManagementView.swift`, the template this was built from):
 
-- `Sources/MacPressLicenseCheck.swift` — verifies a license key against
+- `Sources/MacHubLicenseCheck.swift` — verifies a license key against
   Polar's customer-portal License Keys API
   (`POST /v1/customer-portal/license-keys/validate`), with a Keychain-backed,
   HMAC-tamper-evident 7-day cache so Pro stays unlocked offline.
 - `Sources/Views/LicenseManagementView.swift` — the Settings → License tab:
-  status card, license-entry sheet, verification banner, "Get MacPress Pro"
+  status card, license-entry sheet, verification banner, "Get MacHub Pro"
   link.
 - `Sources/Components/ProUpsell.swift` — `ProGate` wraps each Pro tool's
   view; unlicensed, it swaps in `ProUpsellView` (a real feature pitch +
   bullet list + "Unlock Pro" button) instead of hiding or disabling the
   tool.
 
-**Before this can go live**, `MacPressLicenseConfig` in
-`MacPressLicenseCheck.swift` has two placeholders that need filling in once
+**Before this can go live**, `MacHubLicenseConfig` in
+`MacHubLicenseCheck.swift` has two placeholders that need filling in once
 the product exists in Polar's dashboard:
 
-1. Create a "MacPress Pro" product in Polar.sh with a License Keys benefit
+1. Create a "MacHub Pro" product in Polar.sh with a License Keys benefit
    (Limit Activations / Limit Usage both off, matching MacGroom Pro).
-2. Replace `MacPressLicenseConfig.organizationId` with the real organization
+2. Replace `MacHubLicenseConfig.organizationId` with the real organization
    ID (currently a placeholder that 404s on every check).
-3. Replace `MacPressLicenseConfig.purchaseURL` with the real checkout link.
+3. Replace `MacHubLicenseConfig.purchaseURL` with the real checkout link.
 4. Smoke-test end-to-end with a real test-mode key before shipping.
 
 ## Design

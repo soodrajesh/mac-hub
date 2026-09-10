@@ -2,8 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-APP="MacPress.app"
-BIN="MacPress"
+APP="MacHub.app"
+BIN="MacHub"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
@@ -12,21 +12,21 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>MacPress</string>
+	<string>MacHub</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.rajeshsood.macpress</string>
+	<string>com.rajeshsood.machub</string>
 	<key>CFBundleName</key>
-	<string>MacPress</string>
+	<string>MacHub</string>
 	<key>CFBundleDisplayName</key>
-	<string>MacPress</string>
+	<string>MacHub</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.3</string>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>5</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
 	<key>LSUIElement</key>
@@ -106,13 +106,13 @@ for ARCH in arm64 x86_64; do
   echo "Compiling $ARCH slice…"
   swiftc -O -parse-as-library \
     -target "$ARCH-apple-macos$MIN_OS" \
-    -o "$TMPBIN/MacPress-$ARCH" \
+    -o "$TMPBIN/MacHub-$ARCH" \
     $SOURCES
 done
-lipo -create -output "$APP/Contents/MacOS/MacPress" "$TMPBIN/MacPress-arm64" "$TMPBIN/MacPress-x86_64"
+lipo -create -output "$APP/Contents/MacOS/MacHub" "$TMPBIN/MacHub-arm64" "$TMPBIN/MacHub-x86_64"
 rm -rf "$TMPBIN"
 
-echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/MacPress"))"
+echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/MacHub"))"
 
 # --- Sign: hardened runtime + entitlements, no App Sandbox ---
 # A real Developer ID Application identity is used when present. That's what
@@ -134,7 +134,7 @@ if [ -z "$IDENTITY" ]; then
 fi
 # No --deep: Apple deprecated it, and it signs any nested code with the
 # *outer* entitlements. These bundles have no nested code to sign anyway.
-codesign --force --options runtime --entitlements "$(dirname "$0")/MacPress.entitlements" --sign "$IDENTITY" "$APP"
+codesign --force --options runtime --entitlements "$(dirname "$0")/MacHub.entitlements" --sign "$IDENTITY" "$APP"
 echo "Signed with: $IDENTITY (hardened runtime on)"
 
 

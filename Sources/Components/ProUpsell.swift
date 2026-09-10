@@ -135,14 +135,14 @@ struct ProUpsellView: View {
                 .cornerRadius(10)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Unlock \(tool.title) with MacPress Pro")
+                    Text("Unlock \(tool.title) with MacHub Pro")
                         .appFont(.headline)
-                    Text("MacPress Pro unlocks every batch tool plus Redact, Remove Background, Collage, Icon Generator, PDF Security, Page Numbers, and Blur/Pixelate with auto-detect faces.")
+                    Text("MacHub Pro unlocks every batch tool plus Redact, Remove Background, Collage, Icon Generator, PDF Security, Page Numbers, and Blur/Pixelate with auto-detect faces.")
                         .appFont(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: 460, alignment: .leading)
 
-                    if MacPressLicenseConfig.isConfigured {
+                    if MacHubLicenseConfig.isConfigured {
                         HStack(spacing: 10) {
                             Button(action: openPurchasePage) {
                                 Text("Unlock Pro")
@@ -156,11 +156,11 @@ struct ProUpsellView: View {
                         }
                     } else {
                         // Placeholder Polar org/checkout URL — see
-                        // MacPressLicenseConfig's TODOs. Say so plainly
+                        // MacHubLicenseConfig's TODOs. Say so plainly
                         // instead of showing a button to a dead checkout
                         // link or letting a real key 404 and read as
                         // "invalid."
-                        Label("MacPress Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
+                        Label("MacHub Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
                             .appFont(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -177,7 +177,7 @@ struct ProUpsellView: View {
     }
 
     private func openPurchasePage() {
-        guard let url = URL(string: MacPressLicenseConfig.purchaseURL) else { return }
+        guard let url = URL(string: MacHubLicenseConfig.purchaseURL) else { return }
         NSWorkspace.shared.open(url)
     }
 

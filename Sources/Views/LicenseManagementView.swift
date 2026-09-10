@@ -3,10 +3,10 @@ import SwiftUI
 
 /// Same visual/interaction pattern as mac-cleanup's `LicenseManagementView`
 /// (DESIGN-SYSTEM.md's License / Pro gating pattern) — status card, entry
-/// sheet, verification banner — pointed at MacPress Pro's own license key
-/// and its own `LicenseChecker` (MacPressLicenseCheck.swift).
+/// sheet, verification banner — pointed at MacHub Pro's own license key
+/// and its own `LicenseChecker` (MacHubLicenseCheck.swift).
 struct LicenseManagementView: View {
-    @AppStorage(MacPressLicenseConfig.licenseKeyStorageKey) private var storedLicenseKey = ""
+    @AppStorage(MacHubLicenseConfig.licenseKeyStorageKey) private var storedLicenseKey = ""
 
     // Settings is its own Scene/window — it doesn't inherit the main
     // WindowGroup's `.environment(\.isProLicensed, ...)`, so this view
@@ -31,7 +31,7 @@ struct LicenseManagementView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("MacPress Pro")
+                    Text("MacHub Pro")
                         .appFont(.headline)
                     Text(isVerifying ? "Verifying…" : (isLicenseActive ? "License Active" : "Free Version"))
                         .appFont(.caption, weight: .regular)
@@ -72,17 +72,17 @@ struct LicenseManagementView: View {
                     .help("Remove stored license key")
                 }
 
-                if !isLicenseActive && MacPressLicenseConfig.isConfigured {
+                if !isLicenseActive && MacHubLicenseConfig.isConfigured {
                     Button(action: openPurchasePage) {
-                        Text("Get MacPress Pro")
+                        Text("Get MacHub Pro")
                             .appFont(.body)
                     }
                     .buttonStyle(.borderedProminent)
                 }
             }
 
-            if !MacPressLicenseConfig.isConfigured {
-                Label("MacPress Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
+            if !MacHubLicenseConfig.isConfigured {
+                Label("MacHub Pro isn't available for purchase yet — check back soon.", systemImage: "clock")
                     .appFont(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -117,7 +117,7 @@ struct LicenseManagementView: View {
         do {
             let license = try await checker.verify(licenseKey: key)
             isLicenseActive = license.isValid
-            verificationMessage = "License verified — MacPress Pro unlocked."
+            verificationMessage = "License verified — MacHub Pro unlocked."
             verificationError = false
         } catch {
             isLicenseActive = false
@@ -135,7 +135,7 @@ struct LicenseManagementView: View {
     }
 
     private func openPurchasePage() {
-        guard let url = URL(string: MacPressLicenseConfig.purchaseURL) else { return }
+        guard let url = URL(string: MacHubLicenseConfig.purchaseURL) else { return }
         NSWorkspace.shared.open(url)
     }
 }
