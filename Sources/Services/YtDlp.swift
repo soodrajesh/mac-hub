@@ -152,7 +152,8 @@ enum YtDlp {
         outputQueue.async {
             let handle = outPipe.fileHandleForReading
             while p.isRunning {
-                if let data = try? handle.availableData, !data.isEmpty {
+                let data = handle.availableData
+                if !data.isEmpty {
                     let line = String(decoding: data, as: UTF8.self)
                     capturedOutput += line
                     for outputLine in line.split(separator: "\n", omittingEmptySubsequences: true) {

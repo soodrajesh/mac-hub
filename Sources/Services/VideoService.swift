@@ -168,7 +168,8 @@ enum VideoService {
             group.enter()
             queue.async {
                 while p.isRunning {
-                    if let data = try? handle.availableData, !data.isEmpty {
+                    let data = handle.availableData
+                    if !data.isEmpty {
                         let chunk = String(decoding: data, as: UTF8.self)
                         capturedErr += chunk
                         if let match = chunk.range(of: #"time=(\d+):(\d+):(\d+\.\d+)"#, options: .regularExpression) {
