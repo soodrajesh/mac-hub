@@ -35,7 +35,7 @@ struct TranscriptionView: View {
 
                 Toggle("Also export .srt subtitles (approximate timing)", isOn: $exportSRT)
                 Text("Video files: the audio track is extracted first, then transcribed. Output is a .txt file next to each source.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
         }
         .onChange(of: model.files) { _ in reload() }
@@ -67,14 +67,14 @@ struct TranscriptionView: View {
         case .notDetermined:
             HStack {
                 Label("Speech recognition needs one-time permission.", systemImage: "waveform.circle")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
                 Button("Enable…") { Task { authStatus = await TranscriptionService.requestAuthorization() } }
                     .controlSize(.small)
             }
         case .denied, .restricted:
             Label("Speech recognition is disabled for this app — enable it under System Settings → Privacy & Security → Speech Recognition.",
                   systemImage: "exclamationmark.triangle")
-                .font(.caption).foregroundStyle(.orange)
+                .appFont(.caption).foregroundStyle(.orange)
         @unknown default:
             EmptyView()
         }

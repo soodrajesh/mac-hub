@@ -8,6 +8,15 @@ struct ToolboxApp: App {
     @State private var collapsedSections: Set<String> =
         Set(UserDefaults.standard.stringArray(forKey: ToolboxApp.collapsedSectionsKey) ?? [])
 
+    @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system
+    @AppStorage("textSize") private var textSize = TextSizeSetting.medium
+
+    // License verification for the main window. Settings verifies
+    // independently (it's its own Scene, doesn't inherit this environment)
+    // — see LicenseManagementView.
+    @AppStorage(ToolboxLicenseConfig.licenseKeyStorageKey) private var storedLicenseKey = ""
+    @State private var isProLicensed = false
+
     var body: some Scene {
         WindowGroup {
             NavigationSplitView {
@@ -16,8 +25,15 @@ struct ToolboxApp: App {
                         Section {
                             if !collapsedSections.contains(section.name) {
                                 ForEach(section.tools) { tool in
-                                    Label(tool.rawValue, systemImage: tool.symbol)
-                                        .tag(tool)
+                                    Label {
+                                        HStack(spacing: 6) {
+                                            Text(tool.rawValue)
+                                            if tool.isPro { ProBadge() }
+                                        }
+                                    } icon: {
+                                        Image(systemName: tool.symbol)
+                                    }
+                                    .tag(tool)
                                 }
                             }
                         } header: {
@@ -32,6 +48,17 @@ struct ToolboxApp: App {
                     .frame(minWidth: 560, minHeight: 460)
             }
             .navigationTitle("Toolbox")
+            .preferredColorScheme(appearanceMode.colorScheme)
+            .environment(\.textScale, textSize.scaleFactor)
+            .environment(\.isProLicensed, isProLicensed)
+            // `.task(id:)`, not `.onAppear` — `onAppear` can refire when a
+            // system permission dialog interrupts and restores the window,
+            // silently re-triggering verification each time. `.task(id:)`
+            // also re-runs whenever the stored key changes (entered,
+            // updated, or cleared) — no separate trigger needed for that.
+            .task(id: storedLicenseKey) {
+                await verifyLicense()
+            }
         }
         .windowResizability(.contentMinSize)
         .commands {
@@ -44,6 +71,27 @@ struct ToolboxApp: App {
                     .keyboardShortcut("r", modifiers: .command)
             }
         }
+
+        Settings {
+            SettingsView()
+                .preferredColorScheme(appearanceMode.colorScheme)
+        }
+    }
+
+    private func verifyLicense() async {
+        guard !storedLicenseKey.isEmpty else {
+            // Don't skip this — clearing the key must actually revoke Pro
+            // access immediately, not leave isProLicensed stuck at
+            // whatever it was before until relaunch.
+            isProLicensed = false
+            return
+        }
+        do {
+            let license = try await LicenseChecker().verify(licenseKey: storedLicenseKey)
+            isProLicensed = license.isValid
+        } catch {
+            isProLicensed = false
+        }
     }
 
     @ViewBuilder
@@ -54,7 +102,7 @@ struct ToolboxApp: App {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9, weight: .bold))
+                    .appFont(.caption2, weight: .bold)
                     .rotationEffect(.degrees(isCollapsed ? 0 : 90))
                     .frame(width: 10)
                 Text(name)

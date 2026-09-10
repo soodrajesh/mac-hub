@@ -10,9 +10,9 @@ struct PDFMetadataView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("PDF Metadata").font(.title2).bold()
+                    Text("PDF Metadata").appFont(.title2, weight: .bold)
                     Text("View and edit a PDF's title, author, subject, keywords, and creator.")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .appFont(.subheadline).foregroundStyle(.secondary)
                 }
 
                 DropWell(model: model)
@@ -27,7 +27,7 @@ struct PDFMetadataView: View {
                             field("Keywords", $meta.keywords, hint: "comma-separated")
                             field("Creator", $meta.creator)
                         }.padding(6)
-                    } label: { Label("Document Info", systemImage: "info.circle").font(.callout).bold() }
+                    } label: { Label("Document Info", systemImage: "info.circle").appFont(.callout).bold() }
                     .frame(maxWidth: 520, alignment: .leading)
 
                     HStack(spacing: 10) {

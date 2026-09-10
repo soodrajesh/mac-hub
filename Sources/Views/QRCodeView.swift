@@ -25,9 +25,9 @@ struct QRCodeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Barcode / QR").font(.title2).bold()
+                    Text("Barcode / QR").appFont(.title2, weight: .bold)
                     Text("Generate a QR/Code 128/PDF417/Aztec barcode, or read any barcode from an image.")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .appFont(.subheadline).foregroundStyle(.secondary)
                 }
 
                 Picker("Mode", selection: $mode) {
@@ -43,7 +43,7 @@ struct QRCodeView: View {
     private var generateView: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Content").font(.callout).foregroundStyle(.secondary)
+                Text("Content").appFont(.callout).foregroundStyle(.secondary)
                 TextEditor(text: $text)
                     .font(.system(.body, design: .monospaced))
                     .frame(height: 80)
@@ -91,7 +91,7 @@ struct QRCodeView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(decoded.payload).textSelection(.enabled)
                             .font(.system(.body, design: .monospaced))
-                        Text(decoded.symbology).font(.caption).foregroundStyle(.secondary)
+                        Text(decoded.symbology).appFont(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     Button {

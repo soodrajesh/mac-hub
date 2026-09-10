@@ -19,12 +19,13 @@ struct RedactView: View {
     }
 
     var body: some View {
+        ProGate(tool: .redact) {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Redact").font(.title2).bold()
+                    Text("Redact").appFont(.title2, weight: .bold)
                     Text("Permanently black out regions in a PDF or image — the content underneath is destroyed, not just hidden.")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .appFont(.subheadline).foregroundStyle(.secondary)
                 }
 
                 DropWell(model: model)
@@ -38,7 +39,7 @@ struct RedactView: View {
                             Text("Page \(pageIndex + 1) of \(pageCount)")
                             Button { step(1) } label: { Image(systemName: "chevron.right") }.disabled(pageIndex >= pageCount - 1)
                             Spacer()
-                            Text("Boxes on this page: \(currentRects.wrappedValue.count)").font(.caption).foregroundStyle(.secondary)
+                            Text("Boxes on this page: \(currentRects.wrappedValue.count)").appFont(.caption).foregroundStyle(.secondary)
                         }
                     }
 
@@ -61,7 +62,7 @@ struct RedactView: View {
                         Spacer()
                     }
                     Text("Live preview — the filled areas are what gets permanently removed.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
 
                     HStack(spacing: 10) {
                         Button("Apply Redaction") { apply() }
@@ -69,7 +70,7 @@ struct RedactView: View {
                             .disabled(totalRects == 0)
                         Button("Clear page") { rectsByPage[pageIndex] = [] }
                             .disabled(currentRects.wrappedValue.isEmpty)
-                        if totalRects > 0 { Text("\(totalRects) box\(totalRects == 1 ? "" : "es") total").font(.caption).foregroundStyle(.secondary) }
+                        if totalRects > 0 { Text("\(totalRects) box\(totalRects == 1 ? "" : "es") total").appFont(.caption).foregroundStyle(.secondary) }
                     }
 
                     if let saved {
@@ -83,6 +84,7 @@ struct RedactView: View {
                 }
             }
             .padding(20)
+        }
         }
         .onChange(of: model.files) { _ in load() }
     }

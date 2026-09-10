@@ -10,6 +10,7 @@ struct PDFPageNumbersView: View {
     @State private var info: [MetadataField] = []
 
     var body: some View {
+        ProGate(tool: .pageNumbers) {
         ToolScaffold(
             title: "Page Numbers",
             subtitle: "Stamp page numbers or a label on every page.",
@@ -24,7 +25,7 @@ struct PDFPageNumbersView: View {
                     TextField("Page {n}", text: $format).frame(width: 200)
                 }
                 Text("Use {n} for the page number and {total} for the count — e.g. \"{n} / {total}\".")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
                 Picker("Position", selection: $position) {
                     ForEach(PDFService.StampPosition.allCases) { Text($0.rawValue).tag($0) }
                 }.frame(width: 260)
@@ -34,6 +35,7 @@ struct PDFPageNumbersView: View {
                     Slider(value: $fontSize, in: 8...36, step: 1).frame(width: 180)
                 }
             }
+        }
         }
         .onChange(of: model.files) { _ in info = model.focused.map { FileInfoService.pdfFields($0) } ?? [] }
         .onChange(of: model.selected) { _ in info = model.focused.map { FileInfoService.pdfFields($0) } ?? [] }

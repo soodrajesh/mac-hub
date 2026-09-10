@@ -54,10 +54,10 @@ struct PDFPagesView: View {
                     }.pickerStyle(.segmented).frame(width: 200)
                 case .extractImages:
                     Text("Pulls out the original embedded images (JPEG/JP2) — not a page render.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 case .fromImages:
                     Text("Add image files above; they become one PDF (in listed order).")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
             }
         }

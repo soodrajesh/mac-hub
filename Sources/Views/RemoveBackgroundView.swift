@@ -30,6 +30,7 @@ struct RemoveBackgroundView: View {
     }
 
     var body: some View {
+        ProGate(tool: .removeBackground) {
         ToolScaffold(
             title: "Remove Background",
             subtitle: "Generate preview, adjust as needed, then save.",
@@ -45,7 +46,7 @@ struct RemoveBackgroundView: View {
             VStack(alignment: .leading, spacing: 10) {
                 if !BackgroundService.isAvailable {
                     Label("Requires macOS 14 or later.", systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange)
+                        .appFont(.caption).foregroundStyle(.orange)
                 }
                 Picker("Background", selection: $mode) {
                     ForEach(BgMode.allCases) { Text($0.rawValue).tag($0) }
@@ -56,7 +57,7 @@ struct RemoveBackgroundView: View {
                 switch mode {
                 case .transparent:
                     Label("Subject on a transparent PNG.", systemImage: "checkerboard.rectangle")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 case .color:
                     HStack {
                         ColorPicker("Color", selection: $bgColor, supportsOpacity: false).fixedSize()
@@ -85,6 +86,7 @@ struct RemoveBackgroundView: View {
                     .onChange(of: scale) { _ in applyTransforms() }
                 }
             }
+        }
         }
         .onChange(of: model.files) { _ in reload() }
         .onChange(of: model.selected) { _ in reload() }
@@ -118,7 +120,7 @@ struct RemoveBackgroundView: View {
             } else if let img = inputImage {
                 VStack(spacing: 4) {
                     Text("Drag to select the subject — helps when the full-frame result misses edges")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                     SelectableImagePreview(
                         image: img,
                         selection: $selectionRect,

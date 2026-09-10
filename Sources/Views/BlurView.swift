@@ -13,6 +13,7 @@ struct BlurView: View {
     @State private var info: [MetadataField] = []
 
     var body: some View {
+        ProGate(tool: .blur) {
         ToolScaffold(
             title: "Blur / Pixelate",
             subtitle: "Drag over regions to hide faces, addresses, or numbers before sharing.",
@@ -39,7 +40,7 @@ struct BlurView: View {
                 }
 
                 if let detectError {
-                    Text(detectError).font(.caption).foregroundStyle(.orange)
+                    Text(detectError).appFont(.caption).foregroundStyle(.orange)
                 }
 
                 if let saved {
@@ -48,6 +49,7 @@ struct BlurView: View {
                     }.foregroundStyle(.green)
                 }
             }
+        }
         }
         .onChange(of: model.files) { _ in
             rects = []; saved = nil; preview = nil; detectError = nil
@@ -69,10 +71,10 @@ struct BlurView: View {
 
                 HStack(spacing: 8) {
                     Text("Live preview — the boxes show what will be obscured.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                     if !rects.isEmpty {
                         Text("\(rects.count) region\(rects.count == 1 ? "" : "s")")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .appFont(.caption).foregroundStyle(.secondary)
                     }
                 }
             } else {

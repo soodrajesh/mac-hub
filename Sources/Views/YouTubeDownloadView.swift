@@ -14,22 +14,22 @@ struct YouTubeDownloadView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Video Downloader").font(.title2).bold()
+                    Text("Video Downloader").appFont(.title2, weight: .bold)
                     Text("Batch download videos from any site as MP4 or extract audio as MP3.")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .appFont(.subheadline).foregroundStyle(.secondary)
                 }
 
                 if YtDlp.isAvailable {
                     Label("yt-dlp + ffmpeg ready", systemImage: "checkmark.seal")
-                        .font(.caption).foregroundStyle(.green)
+                        .appFont(.caption).foregroundStyle(.green)
                 } else {
                     Label("yt-dlp/ffmpeg not found — install with `brew install yt-dlp ffmpeg`",
                           systemImage: "exclamationmark.circle")
-                        .font(.caption).foregroundStyle(.orange)
+                        .appFont(.caption).foregroundStyle(.orange)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Paste video URLs (one per line)").font(.callout).foregroundStyle(.secondary)
+                    Text("Paste video URLs (one per line)").appFont(.callout).foregroundStyle(.secondary)
                     TextEditor(text: $pastedURLs)
                         .font(.system(.body, design: .monospaced))
                         .frame(height: 80)
@@ -50,7 +50,7 @@ struct YouTubeDownloadView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Queue: \(model.items.count) URL\(model.items.count == 1 ? "" : "s")")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .appFont(.caption).foregroundStyle(.secondary)
                             Spacer()
                             Button("Clear All") { model.clear() }
                                 .controlSize(.small)
@@ -156,19 +156,19 @@ struct YouTubeDownloadView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.sourceURL.wrappedValue)
                         .lineLimit(1).truncationMode(.middle)
-                        .font(.callout)
+                        .appFont(.callout)
                     if case .downloading(let progress, let size) = item.status.wrappedValue {
                         HStack(spacing: 12) {
                             ProgressView(value: progress)
                             Text(String(format: "%.1f%%", progress * 100))
-                                .font(.caption).foregroundStyle(.secondary)
+                                .appFont(.caption).foregroundStyle(.secondary)
                             if !size.isEmpty {
                                 Text(size)
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .appFont(.caption).foregroundStyle(.secondary)
                             }
                         }
                     } else if case .failed(let msg) = item.status.wrappedValue {
-                        Text(msg).font(.caption).foregroundStyle(.orange).lineLimit(2)
+                        Text(msg).appFont(.caption).foregroundStyle(.orange).lineLimit(2)
                     }
                 }
 
@@ -257,7 +257,7 @@ struct OutputFolderPicker: View {
                 Button("Reset") { model.outputDir = nil }.controlSize(.small)
             }
         }
-        .font(.callout)
+        .appFont(.callout)
     }
 
     private func chooseDir() {

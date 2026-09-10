@@ -1,5 +1,98 @@
 import AppKit
+import SwiftUI
 import UniformTypeIdentifiers
+
+/// The app's Text Size setting, in points-per-style plus a per-view
+/// `.appFont(_:weight:)` modifier — deliberately *not* SwiftUI's
+/// `.dynamicTypeSize`/`Font.TextStyle`, because Dynamic Type is an iOS/
+/// iPadOS/tvOS/watchOS mechanism with no effect on macOS (verified in
+/// mac-cleanup: setting it and comparing screenshots at Medium vs. Extra
+/// Large showed zero visual difference — `Font.TextStyle` sizes on macOS
+/// are fixed AppKit control sizes that don't respond to the environment's
+/// dynamicTypeSize at all). This reimplements the same idea with a real
+/// effect: a scale factor read from the environment, applied to a fixed
+/// base point size per semantic role, computed fresh at render time so
+/// Settings changes apply live. Mirrors mac-cleanup's Support.swift —
+/// see DESIGN-SYSTEM.md.
+private struct TextScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1.0
+}
+
+extension EnvironmentValues {
+    var textScale: CGFloat {
+        get { self[TextScaleKey.self] }
+        set { self[TextScaleKey.self] = newValue }
+    }
+}
+
+/// License status: whether the user has a valid Toolbox Pro license.
+/// Set by `ToolboxApp` after `.task(id: storedLicenseKey)` verifies against
+/// Polar (see `ToolboxLicenseCheck.swift`) and read by every Pro-gated tool
+/// view via `ProGate` (Components/ProUpsell.swift). Settings has its own
+/// independent verification (Settings is its own Scene, doesn't inherit
+/// this environment) — see `LicenseManagementView`.
+private struct IsProLicensedKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    var isProLicensed: Bool {
+        get { self[IsProLicensedKey.self] }
+        set { self[IsProLicensedKey.self] = newValue }
+    }
+}
+
+/// One semantic role → one base point size, matching macOS's own
+/// approximate `NSFont.preferredFont(forTextStyle:)` values — the same
+/// roles this app used as raw SwiftUI `Font.TextStyle`s before, so this is
+/// a drop-in replacement for `.font(.caption)` etc., not a new vocabulary.
+enum AppFontStyle {
+    case largeTitle, title, title2, title3
+    case headline, body, callout, subheadline, footnote, caption, caption2
+
+    var basePointSize: CGFloat {
+        switch self {
+        case .largeTitle:  return 26
+        case .title:       return 22
+        case .title2:      return 17
+        case .title3:      return 15
+        case .headline:    return 13
+        case .body:        return 13
+        case .callout:     return 12
+        case .subheadline: return 11
+        case .footnote:    return 10
+        case .caption:     return 10
+        case .caption2:    return 10
+        }
+    }
+
+    /// SwiftUI's real `.headline` renders semibold, not regular — every
+    /// other style here defaults to regular (see mac-cleanup's own note on
+    /// this — a font-sweep conversion that dropped it silently was a real
+    /// regression there, so this app's helper carries the fix from day one).
+    var defaultWeight: Font.Weight {
+        self == .headline ? .semibold : .regular
+    }
+}
+
+private struct ScaledFontModifier: ViewModifier {
+    @Environment(\.textScale) private var scale
+    let style: AppFontStyle
+    let weight: Font.Weight?
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: style.basePointSize * scale, weight: weight ?? style.defaultWeight))
+    }
+}
+
+extension View {
+    /// Replaces `.font(.caption)`, `.font(.headline)`, `.font(.title2).bold()`,
+    /// etc. throughout the app — every call site needs this instead of a raw
+    /// `Font.TextStyle` for Settings' Text Size to have any real effect.
+    func appFont(_ style: AppFontStyle, weight: Font.Weight? = nil) -> some View {
+        modifier(ScaledFontModifier(style: style, weight: weight))
+    }
+}
 
 /// GUI apps launch with a stripped-down PATH that omits /opt/homebrew/bin and
 /// /usr/local/bin, so subprocesses (and their own internal `which`-style

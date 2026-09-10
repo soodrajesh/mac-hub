@@ -64,6 +64,21 @@ enum Tool: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Pro-gated tools — see DESIGN-SYSTEM.md's License / Pro gating
+    /// pattern and Components/ProUpsell.swift's `ProTool`. Free tier:
+    /// Compress/Merge/Split PDF, PDF Pages, and basic single-image edit.
+    /// Everything else not listed here (Organize Pages, Sign, Metadata, QR,
+    /// OCR, Transcribe, and the video/audio tools) also stays free.
+    var isPro: Bool {
+        switch self {
+        case .imageTools, .watermark, .pdfCrop, .redact, .collage,
+             .iconGen, .removeBG, .pdfSecurity, .pdfNumbers, .blur:
+            return true
+        default:
+            return false
+        }
+    }
+
     var section: String {
         switch self {
         case .pdfCompress, .pdfMerge, .pdfSplit, .pdfPages, .pdfOrganize, .pdfSecurity, .pdfSign, .pdfNumbers, .pdfMeta, .pdfCrop: return "PDF"

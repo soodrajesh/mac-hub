@@ -40,8 +40,8 @@ struct ToolScaffold<Options: View, Preview: View>: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(title).font(.title2).bold()
-                        Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
+                        Text(title).appFont(.title2, weight: .bold)
+                        Text(subtitle).appFont(.subheadline).foregroundStyle(.secondary)
                     }
 
                     DropWell(model: model)
@@ -76,7 +76,7 @@ struct ToolScaffold<Options: View, Preview: View>: View {
                         HStack(spacing: 8) {
                             ProgressView(value: model.progress).frame(width: 220)
                             Text("\(Int(model.progress * 100))%")
-                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                                .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
                         }
                     }
 
@@ -104,7 +104,7 @@ struct PreviewPane<Content: View>: View {
     @ViewBuilder var content: () -> Content
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Preview", systemImage: "eye").font(.caption).foregroundStyle(.secondary)
+            Label("Preview", systemImage: "eye").appFont(.caption).foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
                 content()
@@ -164,7 +164,7 @@ struct MetadataLine: View {
     var body: some View {
         if let text {
             Label(text, systemImage: "info.circle")
-                .font(.caption).foregroundStyle(.secondary)
+                .appFont(.caption).foregroundStyle(.secondary)
         }
     }
 }
@@ -183,9 +183,9 @@ struct MetadataPanel: View {
                 VStack(alignment: .leading, spacing: 5) {
                     ForEach(fields) { f in
                         HStack(alignment: .top, spacing: 8) {
-                            Text(f.label).font(.caption).foregroundStyle(.secondary)
+                            Text(f.label).appFont(.caption).foregroundStyle(.secondary)
                                 .frame(width: 92, alignment: .leading)
-                            Text(f.value).font(.caption).textSelection(.enabled)
+                            Text(f.value).appFont(.caption).textSelection(.enabled)
                             Spacer(minLength: 0)
                         }
                     }
@@ -193,10 +193,10 @@ struct MetadataPanel: View {
                 .padding(.top, 6)
             } label: {
                 Label("Details (\(fields.count))", systemImage: "info.circle")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
             .padding(10)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color(.controlBackgroundColor)))
             .frame(maxWidth: 460, alignment: .leading)
         }
     }
@@ -209,7 +209,7 @@ struct ImagePreview: View {
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+                RoundedRectangle(cornerRadius: 8).fill(Color(.controlBackgroundColor))
                 if let image {
                     Image(nsImage: image)
                         .resizable()
@@ -221,7 +221,7 @@ struct ImagePreview: View {
             }
             .frame(maxWidth: .infinity, minHeight: 200, maxHeight: .infinity)
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.gray.opacity(0.25)))
-            if let caption { Text(caption).font(.caption).foregroundStyle(.secondary) }
+            if let caption { Text(caption).appFont(.caption).foregroundStyle(.secondary) }
         }
     }
 }
@@ -237,11 +237,11 @@ struct DropWell: View {
                 .font(.system(size: 24))
                 .foregroundStyle(.secondary)
             Text(model.allowsMultiple ? "Drop files here" : "Drop a file here")
-                .font(.caption)
+                .appFont(.caption)
                 .foregroundStyle(.secondary)
             Button("Choose…") { choose() }
                 .controlSize(.small)
-                .font(.caption)
+                .appFont(.caption)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
@@ -292,7 +292,7 @@ struct FileList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("\(model.files.count) file\(model.files.count == 1 ? "" : "s")")
-                .font(.caption).foregroundStyle(.secondary)
+                .appFont(.caption).foregroundStyle(.secondary)
             List {
                 ForEach(Array(model.files.enumerated()), id: \.element) { idx, url in
                     row(idx: idx, url: url)
@@ -315,16 +315,16 @@ struct FileList: View {
                     Button { model.moveDown(url) } label: { Image(systemName: "arrow.down") }
                         .disabled(idx == model.files.count - 1)
                 }
-                .buttonStyle(.borderless).font(.caption).foregroundStyle(.secondary)
+                .buttonStyle(.borderless).appFont(.caption).foregroundStyle(.secondary)
             }
-            Text("\(idx + 1).").font(.caption.monospacedDigit())
+            Text("\(idx + 1).").appFont(.caption).monospacedDigit()
                 .foregroundStyle(.secondary).frame(width: 22, alignment: .trailing)
             Image(systemName: icon(for: url)).foregroundStyle(isSel ? Color.white : .secondary)
             Text(url.lastPathComponent).lineLimit(1).truncationMode(.middle)
                 .fontWeight(isSel ? .semibold : .regular)
                 .foregroundStyle(isSel ? Color.white : .primary)
             Spacer()
-            Text(url.fileSize.humanBytes).font(.caption)
+            Text(url.fileSize.humanBytes).appFont(.caption)
                 .foregroundStyle(isSel ? Color.white.opacity(0.85) : .secondary)
             Button { model.remove(url) } label: {
                 Image(systemName: "xmark.circle.fill")
@@ -364,7 +364,7 @@ struct OutputPicker: View {
                 Button("Reset") { model.outputDir = nil }.controlSize(.small)
             }
         }
-        .font(.callout)
+        .appFont(.callout)
     }
 
     private func chooseDir() {
@@ -393,9 +393,9 @@ struct ResultBar: View {
                     Label("\(result.outputs.count) file\(result.outputs.count == 1 ? "" : "s") created",
                           systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                    ForEach(result.messages, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                    ForEach(result.messages, id: \.self) { Text($0).appFont(.caption).foregroundStyle(.secondary) }
                     ForEach(result.failures, id: \.self) {
-                        Text($0).font(.caption).foregroundStyle(.orange)
+                        Text($0).appFont(.caption).foregroundStyle(.orange)
                     }
                     if !result.outputs.isEmpty {
                         Button {

@@ -21,7 +21,7 @@ struct VideoConvertView: View {
                     ForEach(VideoService.Preset.allCases) { Text($0.rawValue).tag($0) }
                 }.pickerStyle(.segmented)
                 Text("If a preset isn't compatible with a source file, it falls back to Highest Quality for that file.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
         }
         .onChange(of: model.files) { _ in loadPreview() }
@@ -32,14 +32,14 @@ struct VideoConvertView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let url = model.focused {
                 VideoPreviewPlayer(url: url, fallbackThumbnail: thumbnail)
-                Text(url.lastPathComponent).font(.caption).foregroundStyle(.secondary)
+                Text(url.lastPathComponent).appFont(.caption).foregroundStyle(.secondary)
                     .lineLimit(1).truncationMode(.middle)
 
                 if !info.isEmpty {
                     MetadataPanel(fields: info)
                 }
             } else {
-                Text("Drop a video to preview.").font(.caption).foregroundStyle(.secondary)
+                Text("Drop a video to preview.").appFont(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
         }

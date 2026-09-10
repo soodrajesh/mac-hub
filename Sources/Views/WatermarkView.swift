@@ -18,6 +18,7 @@ struct WatermarkView: View {
     @State private var previewImage: NSImage?
 
     var body: some View {
+        ProGate(tool: .watermark) {
         ToolScaffold(
             title: "Watermark",
             subtitle: "Batch: stamp a text or logo watermark onto many images at once.",
@@ -71,6 +72,7 @@ struct WatermarkView: View {
                 }
             }
         }
+        }
         .onChange(of: model.files) { _ in updatePreview() }
         .onChange(of: model.selected) { _ in updatePreview() }
     }
@@ -78,7 +80,7 @@ struct WatermarkView: View {
     private var previewPane: some View {
         VStack(alignment: .leading, spacing: 10) {
             ImagePreview(image: previewImage, caption: model.focused?.lastPathComponent)
-            if model.files.isEmpty { Text("Drop an image to preview.").font(.caption).foregroundStyle(.secondary) }
+            if model.files.isEmpty { Text("Drop an image to preview.").appFont(.caption).foregroundStyle(.secondary) }
         }
     }
 

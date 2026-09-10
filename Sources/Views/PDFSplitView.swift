@@ -34,7 +34,7 @@ struct PDFSplitView: View {
                         TextField("e.g. 1-3, 5, 8-10", text: $ranges).frame(width: 220)
                     }
                     Text("Each range becomes its own file (1-based, inclusive).")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
             }
         }

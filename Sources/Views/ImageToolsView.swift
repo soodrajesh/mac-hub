@@ -14,6 +14,7 @@ struct ImageToolsView: View {
     @State private var afterBytes: Int?
 
     var body: some View {
+        ProGate(tool: .convertCompress) {
         ToolScaffold(
             title: "Convert & Compress",
             subtitle: "Batch: drop many images to change format (HEIC → JPEG…), compress, cap size, and strip EXIF — all at once. For visual crop/rotate, use Image Editor.",
@@ -36,7 +37,7 @@ struct ImageToolsView: View {
                     }
                 } else {
                     Text("\(format.label) is lossless — shrink further by resizing below.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
 
                 Toggle("Resize (cap largest side)", isOn: $resize)
@@ -49,8 +50,9 @@ struct ImageToolsView: View {
                     }
                 }
                 Label("EXIF/GPS metadata is always stripped from output.",
-                      systemImage: "location.slash").font(.caption).foregroundStyle(.secondary)
+                      systemImage: "location.slash").appFont(.caption).foregroundStyle(.secondary)
             }
+        }
         }
         .onChange(of: model.files) { _ in updatePreview() }
         .onChange(of: model.selected) { _ in updatePreview() }
@@ -63,15 +65,15 @@ struct ImageToolsView: View {
                 let pct = b > 0 ? Int((1 - Double(a) / Double(b)) * 100) : 0
                 HStack(spacing: 6) {
                     Text("Before \(b.humanBytes)").foregroundStyle(.secondary)
-                    Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.secondary)
+                    Image(systemName: "arrow.right").appFont(.caption2).foregroundStyle(.secondary)
                     Text("After ~\(Int64(a).humanBytes)").bold()
                     Text("(\(pct >= 0 ? "−" : "+")\(abs(pct))%)")
                         .foregroundStyle(pct >= 0 ? .green : .orange)
-                }.font(.callout)
+                }.appFont(.callout)
                 Text("Estimate for the first file at current settings.")
-                    .font(.caption2).foregroundStyle(.secondary)
+                    .appFont(.caption2).foregroundStyle(.secondary)
             } else {
-                Text("Drop an image to preview.").font(.caption).foregroundStyle(.secondary)
+                Text("Drop an image to preview.").appFont(.caption).foregroundStyle(.secondary)
             }
             Spacer()
         }

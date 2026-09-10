@@ -38,9 +38,9 @@ struct PDFSignView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Sign PDF").font(.title2).bold()
+                        Text("Sign PDF").appFont(.title2, weight: .bold)
                         Text("Draw or type a signature, then drag a box on the page to place it.")
-                            .font(.subheadline).foregroundStyle(.secondary)
+                            .appFont(.subheadline).foregroundStyle(.secondary)
                     }
                     DropWell(model: model)
                     if !model.files.isEmpty { FileList(model: model) }
@@ -81,17 +81,17 @@ struct PDFSignView: View {
                     HStack(spacing: 12) {
                         if pageCount > 1 {
                             Button { step(-1) } label: { Image(systemName: "chevron.left") }.disabled(pageIndex == 0)
-                            Text("Page \(pageIndex + 1) / \(pageCount)").font(.callout)
+                            Text("Page \(pageIndex + 1) / \(pageCount)").appFont(.callout)
                             Button { step(1) } label: { Image(systemName: "chevron.right") }.disabled(pageIndex >= pageCount - 1)
                             Divider().frame(height: 16)
                         }
                         Button { setZoom(zoom - 0.25) } label: { Image(systemName: "minus.magnifyingglass") }
-                        Text("\(Int(zoom * 100))%").font(.caption.monospacedDigit()).frame(width: 44)
+                        Text("\(Int(zoom * 100))%").appFont(.caption).monospacedDigit().frame(width: 44)
                         Button { setZoom(zoom + 0.25) } label: { Image(systemName: "plus.magnifyingglass") }
                         Button("Fit") { setZoom(1) }.disabled(zoom == 1)
                         Spacer()
                         Text(placeRect.isEmpty ? "Drag a box to place the signature" : "Pinch/scroll to zoom for precision")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .appFont(.caption).foregroundStyle(.secondary)
                     }
                     zoomablePage(displayImage)
                 }
@@ -170,13 +170,13 @@ struct PDFSignView: View {
                             .resizable().scaledToFit().frame(maxWidth: 260, maxHeight: 90)
                             .background(RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.12)))
                         Text("Saved and reused next time. A transparent PNG works best.")
-                            .font(.caption2).foregroundStyle(.secondary)
+                            .appFont(.caption2).foregroundStyle(.secondary)
                     } else {
-                        Text("Upload a signature image (PNG/JPEG).").font(.caption).foregroundStyle(.secondary)
+                        Text("Upload a signature image (PNG/JPEG).").appFont(.caption).foregroundStyle(.secondary)
                     }
                 }
             }.padding(6)
-        } label: { Label("Signature", systemImage: "signature").font(.callout).bold() }
+        } label: { Label("Signature", systemImage: "signature").appFont(.callout).bold() }
         .frame(maxWidth: 500, alignment: .leading)
     }
 

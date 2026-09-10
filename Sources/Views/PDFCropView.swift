@@ -13,6 +13,7 @@ struct PDFCropView: View {
     @State private var info: [MetadataField] = []
 
     var body: some View {
+        ProGate(tool: .cropTrim) {
         ToolScaffold(
             title: "Crop / Trim Margins",
             subtitle: "Trim whitespace margins from every page by a percentage of page size. Lossless — sets the PDF crop box, content underneath is untouched.",
@@ -36,8 +37,9 @@ struct PDFCropView: View {
                     marginSlider("Bottom", $bottom)
                 }
                 Text("Percentage is of page width (left/right) or height (top/bottom).")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
+        }
         }
         .onChange(of: model.files) { _ in reload() }
         .onChange(of: model.selected) { _ in reload() }
@@ -85,9 +87,9 @@ struct PDFCropView: View {
                 .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.04)))
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.gray.opacity(0.25)))
                 Text("Dimmed area will be trimmed; the outlined area is what's kept.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             } else {
-                Text("Drop a PDF to preview.").font(.caption).foregroundStyle(.secondary)
+                Text("Drop a PDF to preview.").appFont(.caption).foregroundStyle(.secondary)
             }
         }
     }

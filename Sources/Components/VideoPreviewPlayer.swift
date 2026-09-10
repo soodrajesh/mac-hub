@@ -110,7 +110,7 @@ struct VideoPreviewPlayer: View {
                 VStack(spacing: 6) {
                     ImagePreview(image: fallbackThumbnail)
                     Text("Live preview isn't available for this codec — showing a static frame instead.")
-                        .font(.caption2).foregroundStyle(.secondary)
+                        .appFont(.caption2).foregroundStyle(.secondary)
                 }
             } else {
                 PlayerLayerView(player: controller.player)
@@ -139,7 +139,7 @@ struct VideoPreviewPlayer: View {
             .disabled(controller.duration <= 0)
 
             Text("\(format(controller.currentTime)) / \(format(controller.duration))")
-                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
         }
     }
 

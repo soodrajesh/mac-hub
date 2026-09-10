@@ -17,6 +17,7 @@ struct PDFSecurityView: View {
     }
 
     var body: some View {
+        ProGate(tool: .pdfSecurity) {
         ToolScaffold(
             title: "PDF Security",
             subtitle: "Password-protect, unlock, or watermark PDFs.",
@@ -38,7 +39,7 @@ struct PDFSecurityView: View {
                     }
                     if op == .decrypt {
                         Text("Enter the current password to produce an unlocked copy.")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .appFont(.caption).foregroundStyle(.secondary)
                     }
                 case .watermark:
                     HStack {
@@ -51,6 +52,7 @@ struct PDFSecurityView: View {
                     }
                 }
             }
+        }
         }
         .onChange(of: model.files) { _ in info = model.focused.map { FileInfoService.pdfFields($0) } ?? [] }
         .onChange(of: model.selected) { _ in info = model.focused.map { FileInfoService.pdfFields($0) } ?? [] }

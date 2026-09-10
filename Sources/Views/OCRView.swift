@@ -18,9 +18,9 @@ struct OCRView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("OCR / Text").font(.title2).bold()
+                    Text("OCR / Text").appFont(.title2, weight: .bold)
                     Text("Extract text, or produce a searchable PDF (on-device, Vision).")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .appFont(.subheadline).foregroundStyle(.secondary)
                 }
 
                 DropWell(model: model)

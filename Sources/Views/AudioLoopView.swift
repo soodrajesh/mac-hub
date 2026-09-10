@@ -19,7 +19,7 @@ struct AudioLoopView: View {
                 MetadataPanel(fields: info)
                 if let d = clipDuration {
                     Text("Clip length: \(String(format: "%.1f", d))s")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Target duration (minutes)")
@@ -30,7 +30,7 @@ struct AudioLoopView: View {
                 if let d = clipDuration, let minutes = Double(targetMinutes), minutes > 0, d > 0 {
                     let repeats = Int((minutes * 60 / d).rounded(.up))
                     Text("≈ \(repeats) repeat\(repeats == 1 ? "" : "s")")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
             }
         }

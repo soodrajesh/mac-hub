@@ -24,7 +24,7 @@ struct VideoExtractAudioView: View {
                 if format == .mp3 && YtDlp.ffmpegPath == nil {
                     Label("MP3 needs ffmpeg — install with `brew install ffmpeg`, or choose M4A.",
                           systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange)
+                        .appFont(.caption).foregroundStyle(.orange)
                 }
             }
         }
@@ -36,9 +36,9 @@ struct VideoExtractAudioView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let url = model.focused {
                 VideoPreviewPlayer(url: url, fallbackThumbnail: thumbnail)
-                Text("Audio will be extracted from this video.").font(.caption).foregroundStyle(.secondary)
+                Text("Audio will be extracted from this video.").appFont(.caption).foregroundStyle(.secondary)
             } else {
-                Text("Drop a video to preview.").font(.caption).foregroundStyle(.secondary)
+                Text("Drop a video to preview.").appFont(.caption).foregroundStyle(.secondary)
             }
         }
     }

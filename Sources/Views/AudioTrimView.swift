@@ -40,12 +40,12 @@ struct AudioTrimView: View {
                     regionInspector
 
                     Text("\(regions.count) region\(regions.count == 1 ? "" : "s") selected")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 } else if let err = loadError {
                     Label(err, systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange)
+                        .appFont(.caption).foregroundStyle(.orange)
                 } else if !model.files.isEmpty {
-                    Text("Loading waveform…").font(.caption).foregroundStyle(.secondary)
+                    Text("Loading waveform…").appFont(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -59,7 +59,7 @@ struct AudioTrimView: View {
             }
             .buttonStyle(.borderless)
             Text("\(format(player.currentTime)) / \(format(duration))")
-                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
         }
     }
 
@@ -91,7 +91,7 @@ struct AudioTrimView: View {
             .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.08)))
         } else {
             Text("Select a region (or drag on the waveform to create one) to edit its bounds.")
-                .font(.caption).foregroundStyle(.secondary)
+                .appFont(.caption).foregroundStyle(.secondary)
         }
     }
 

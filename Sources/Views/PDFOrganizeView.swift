@@ -64,7 +64,7 @@ struct PDFOrganizeView: View {
                         Divider()
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Removed (\(trash.count)) — tap to restore")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .appFont(.caption).foregroundStyle(.secondary)
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 10) {
                                     ForEach(trash) { item in
@@ -122,7 +122,7 @@ struct PDFOrganizeView: View {
                     .padding(4).background(.thinMaterial, in: Circle()).padding(3)
             }
             Text("Page \(item.originalIndex + 1)\(idx != nil ? "  ·  #\(idx! + 1)" : "")")
-                .font(.caption2).foregroundStyle(.secondary)
+                .appFont(.caption2).foregroundStyle(.secondary)
         }
     }
 
@@ -137,11 +137,11 @@ struct PDFOrganizeView: View {
                             .opacity(0.5)
                     }
                     Image(systemName: "arrow.uturn.backward.circle.fill")
-                        .font(.title3).foregroundStyle(.secondary)
+                        .appFont(.title3).foregroundStyle(.secondary)
                 }
                 .frame(width: 64, height: 82)
                 .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.gray.opacity(0.25)))
-                Text("Page \(item.originalIndex + 1)").font(.caption2).foregroundStyle(.secondary)
+                Text("Page \(item.originalIndex + 1)").appFont(.caption2).foregroundStyle(.secondary)
             }
         }
         .buttonStyle(.plain)
@@ -198,8 +198,8 @@ struct PDFOrganizeView: View {
 
     private func header(_ t: String, _ s: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(t).font(.title2).bold()
-            Text(s).font(.subheadline).foregroundStyle(.secondary)
+            Text(t).appFont(.title2, weight: .bold)
+            Text(s).appFont(.subheadline).foregroundStyle(.secondary)
         }
     }
 }

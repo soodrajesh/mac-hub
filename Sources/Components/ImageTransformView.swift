@@ -8,14 +8,14 @@ struct ImageTransformView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Transform", systemImage: "crop.rotate").font(.caption).foregroundStyle(.secondary)
+            Label("Transform", systemImage: "crop.rotate").appFont(.caption).foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Rotate").font(.caption)
+                        Text("Rotate").appFont(.caption)
                         Spacer()
-                        Text("\(Int(rotation))°").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text("\(Int(rotation))°").appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
                     }
                     HStack(spacing: 12) {
                         Slider(value: $rotation, in: 0...360, step: 1).frame(maxWidth: .infinity)
@@ -26,9 +26,9 @@ struct ImageTransformView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Scale").font(.caption)
+                        Text("Scale").appFont(.caption)
                         Spacer()
-                        Text("\(String(format: "%.0f", scale * 100))%").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text("\(String(format: "%.0f", scale * 100))%").appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
                     }
                     HStack(spacing: 12) {
                         Slider(value: $scale, in: 0.1...3, step: 0.1).frame(maxWidth: .infinity)
@@ -40,7 +40,7 @@ struct ImageTransformView: View {
 
                 Button(action: onReset) {
                     Label("Reset All", systemImage: "arrow.counterclockwise")
-                        .font(.caption)
+                        .appFont(.caption)
                 }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity)

@@ -6,6 +6,39 @@ Downloader tool (downloads videos from the web as requested).
 
 ![Toolbox screenshot](docs/screenshot.png)
 
+## Free vs. Toolbox Pro
+
+Toolbox has the largest free tier of the line and, deliberately, the biggest
+Pro tier too — of every app in the mac-apps line, this is the one with the
+most Pro-gated tools. The split:
+
+**Free, forever, no trial:**
+
+- Compress PDF, Merge PDF, Split PDF
+- PDF Pages (rotate / delete / extract / convert)
+- Basic single-image edit (crop, rotate, flip, resize)
+- Everything not listed below — Organize Pages, Sign PDF, PDF Metadata,
+  Barcode/QR, OCR/Text, Transcribe, and every video/audio tool
+
+**Toolbox Pro:**
+
+- Convert & Compress (batch image conversion/compression)
+- Watermark (batch)
+- Crop / Trim Margins (batch)
+- Redact
+- Remove Background
+- Collage (grid + Freeform poster maker)
+- Icon Generator
+- PDF Security (password / watermark)
+- Page Numbers
+- Blur / Pixelate, including auto-detect faces
+
+A locked Pro tool is never hidden or silently disabled — opening it from the
+sidebar (marked with a **PRO** badge) shows exactly what it does and an
+"Unlock Pro" upsell, not a dead end.
+
+See **Toolbox Pro** below for how licensing works.
+
 ## Prerequisites
 
 - **macOS 13+** and the **Swift toolchain** (`swift --version`) — required to build.
@@ -171,6 +204,49 @@ work) is built on plain `AVFoundation` + `AVPlayerLayer`, not AVKit's SwiftUI
 this project's non-Xcode `swiftc` build (no proper framework embedding). If a
 future macOS toolchain fixes that, it isn't necessary to fix here, so this is a
 deliberate constraint, not an oversight.
+
+## Toolbox Pro
+
+Licensing is a separate Lemon-Squeezy-successor Polar.sh product from
+MacGroom Pro — Toolbox Pro has its own organization ID, its own bundle-id-
+scoped `@AppStorage` license key (`com.rajeshsood.toolbox.licenseKey`), and
+its own Keychain cache namespace. It follows the exact same pattern as
+MacGroom Pro (see `mac-cleanup`'s `MacGroomLicenseCheck.swift` /
+`LicenseManagementView.swift`, the template this was built from):
+
+- `Sources/ToolboxLicenseCheck.swift` — verifies a license key against
+  Polar's customer-portal License Keys API
+  (`POST /v1/customer-portal/license-keys/validate`), with a Keychain-backed,
+  HMAC-tamper-evident 7-day cache so Pro stays unlocked offline.
+- `Sources/Views/LicenseManagementView.swift` — the Settings → License tab:
+  status card, license-entry sheet, verification banner, "Get Toolbox Pro"
+  link.
+- `Sources/Components/ProUpsell.swift` — `ProGate` wraps each Pro tool's
+  view; unlicensed, it swaps in `ProUpsellView` (a real feature pitch +
+  bullet list + "Unlock Pro" button) instead of hiding or disabling the
+  tool.
+
+**Before this can go live**, `ToolboxLicenseConfig` in
+`ToolboxLicenseCheck.swift` has two placeholders that need filling in once
+the product exists in Polar's dashboard:
+
+1. Create a "Toolbox Pro" product in Polar.sh with a License Keys benefit
+   (Limit Activations / Limit Usage both off, matching MacGroom Pro).
+2. Replace `ToolboxLicenseConfig.organizationId` with the real organization
+   ID (currently a placeholder that 404s on every check).
+3. Replace `ToolboxLicenseConfig.purchaseURL` with the real checkout link.
+4. Smoke-test end-to-end with a real test-mode key before shipping.
+
+## Design
+
+Refactored to the shared mac-apps design system (see gogenops's
+`DESIGN-SYSTEM.md`, extracted from MacGroom): semantic colors throughout
+(`.secondary`/`.tertiary`, `Color.accentColor`, `Color(.controlBackgroundColor)`,
+status colors only for meaning), body text routed through an
+`.appFont(_:weight:)` helper backed by a `\.textScale` environment key (so
+Settings → Appearance's Text Size picker has a real effect — see
+`Sources/Support.swift`), and a Settings pane (⌘,) with Appearance
+(System/Light/Dark), Text Size, License, and About sections.
 
 ## Ideas for later
 

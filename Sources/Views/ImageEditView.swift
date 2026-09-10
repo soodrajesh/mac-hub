@@ -101,7 +101,7 @@ struct ImageEditView: View {
                     if let src = model.files.first { label("doc", "Source \(src.fileSize.humanBytes)") }
                     if let est = estimatedBytes { label("arrow.down.doc", "Output ~\(Int64(est).humanBytes)") }
                 }
-                .font(.caption).foregroundStyle(.secondary)
+                .appFont(.caption).foregroundStyle(.secondary)
             } else {
                 ImagePreview(image: nil, caption: "Drop an image")
             }
@@ -146,7 +146,7 @@ struct ImageEditView: View {
                 }
             }
             .padding(6)
-        } label: { Text("Resize & Skew").font(.callout).bold() }
+        } label: { Text("Resize & Skew").appFont(.callout).bold() }
         .frame(maxWidth: 420, alignment: .leading)
     }
 
@@ -170,7 +170,7 @@ struct ImageEditView: View {
                     }.frame(width: 220)
                 }
             }.padding(6)
-        } label: { Label("Text", systemImage: "textformat").font(.callout).bold() }
+        } label: { Label("Text", systemImage: "textformat").appFont(.callout).bold() }
         .frame(maxWidth: 460, alignment: .leading)
     }
 

@@ -53,6 +53,7 @@ struct CollageView: View {
     private var isFreeform: Bool { layout == .freeform }
 
     var body: some View {
+        ProGate(tool: .collage) {
         ToolScaffold(
             title: "Collage",
             subtitle: "Grid/strip for a uniform layout, or Freeform to drag, resize, rotate images & text — a mini poster maker.",
@@ -78,7 +79,7 @@ struct CollageView: View {
                         HStack {
                             Text("Opacity").foregroundStyle(.secondary)
                             Slider(value: $items[idx].opacity, in: 0.1...1).frame(width: 200)
-                            Text("\(Int(items[idx].opacity * 100))%").font(.caption.monospacedDigit())
+                            Text("\(Int(items[idx].opacity * 100))%").appFont(.caption).monospacedDigit()
                         }
                         if items[idx].isText { textEditor(idx) }
                     }
@@ -88,6 +89,7 @@ struct CollageView: View {
                     gridControls
                 }
             }
+        }
         }
         .onChange(of: model.files) { _ in updatePreview(); sync() }
     }
@@ -126,7 +128,7 @@ struct CollageView: View {
                 Button { deleteSelected() } label: { Label("Delete", systemImage: "trash") }.disabled(selected == nil)
             }
             Text("Drag to move, corner handle to resize, top handle to rotate. Tap empty space to deselect.")
-                .font(.caption).foregroundStyle(.secondary)
+                .appFont(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -149,7 +151,7 @@ struct CollageView: View {
                     Slider(value: $items[idx].fontFrac, in: 0.02...0.4).frame(width: 200)
                 }
             }.padding(6)
-        } label: { Label("Text", systemImage: "textformat").font(.callout).bold() }
+        } label: { Label("Text", systemImage: "textformat").appFont(.callout).bold() }
         .frame(maxWidth: 460, alignment: .leading)
     }
 

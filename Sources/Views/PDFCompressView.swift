@@ -22,11 +22,11 @@ struct PDFCompressView: View {
                 if Ghostscript.isAvailable {
                     Toggle("Use Ghostscript (higher quality, keeps text)", isOn: $useGhostscript)
                     Label("Ghostscript detected", systemImage: "checkmark.seal")
-                        .font(.caption).foregroundStyle(.green)
+                        .appFont(.caption).foregroundStyle(.green)
                 } else {
                     Label("Ghostscript not found — using native compression. Install with `brew install ghostscript` for better results.",
                           systemImage: "info.circle")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
 
                 if useGhostscript && Ghostscript.isAvailable {
@@ -43,7 +43,7 @@ struct PDFCompressView: View {
                         Slider(value: $quality, in: 0.2...0.9).frame(width: 180)
                     }
                     Text("Native mode rasterizes pages (selectable text becomes an image).")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .appFont(.caption).foregroundStyle(.secondary)
                 }
             }
         }

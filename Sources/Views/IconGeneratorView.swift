@@ -10,6 +10,7 @@ struct IconGeneratorView: View {
     @State private var info: [MetadataField] = []
 
     var body: some View {
+        ProGate(tool: .iconGenerator) {
         ToolScaffold(
             title: "Icon Generator",
             subtitle: "Turn an image into a favicon + full app-icon set (center-cropped to square).",
@@ -32,8 +33,9 @@ struct IconGeneratorView: View {
                 Toggle("favicon.ico (multi-resolution)", isOn: $ico)
                 Toggle("AppIcon.icns (macOS)", isOn: $icns)
                 Text("Outputs land in a \"<name>-icons\" folder next to the source.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
+        }
         }
         .onChange(of: model.files) { _ in
             square = model.files.first.flatMap { try? ImageService.loadCGImage($0) }

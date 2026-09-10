@@ -56,11 +56,11 @@ struct SelectableImagePreview: View {
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.gray.opacity(0.25)))
 
             HStack(spacing: 12) {
-                if let caption { Text(caption).font(.caption).foregroundStyle(.secondary) }
+                if let caption { Text(caption).appFont(.caption).foregroundStyle(.secondary) }
                 Spacer()
                 if selection != nil {
                     Button("Clear Selection") { selection = nil }
-                        .font(.caption).controlSize(.small).buttonStyle(.bordered)
+                        .appFont(.caption).controlSize(.small).buttonStyle(.bordered)
                 }
             }
         }
