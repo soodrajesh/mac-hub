@@ -32,27 +32,25 @@ import Security
 ///    MacGroom's integration was verified live (2026-09-05) before trusting
 ///    this in production — see this file's `validateRemote` doc comment.
 enum MacHubLicenseConfig {
-    /// TODO: replace with MacHub Pro's real Polar.sh organization ID once
-    /// that product exists. This placeholder will 404 on every check.
-    static let organizationId = "TODO_POLAR_ORG_ID_MACHUB_PRO"
+    /// MacHub Pro's product lives in the same `macgroom` Polar organization
+    /// as MacGroom Pro and the other mac-apps products.
+    static let organizationId = "41537814-c35a-4def-bf4e-888ef4f530ce"
 
-    /// TODO: replace with the real Polar checkout URL for MacHub Pro.
-    static let purchaseURL = "https://TODO-polar-checkout-url-for-machub-pro"
+    /// MacHub Pro's own License Keys benefit — since the org above is
+    /// shared, this scopes validation to this specific product (see
+    /// `validateRemote`'s comment) rather than accepting any key valid
+    /// anywhere in the org.
+    static let benefitId = "b02a0fc9-9105-4690-a439-a261aaf97806"
+
+    /// Real "MacHub Pro" checkout link (Polar → Products → MacHub Pro →
+    /// Share).
+    static let purchaseURL = "https://buy.polar.sh/polar_cl_fVK96ygXKKVDBQEnRFdAiqkkTnuXqe6tfZxwI47opNG"
 
     /// Bundle-id-scoped `@AppStorage` key for the stored license key —
     /// matches `com.rajeshsood.machub` from Info.plist/build.sh.
     static let licenseKeyStorageKey = "com.rajeshsood.machub.licenseKey"
 
-    /// False until both TODOs above are filled in with real values. Checked
-    /// before every verify attempt and before offering the purchase link,
-    /// so a not-yet-configured product fails with a distinct, honest
-    /// message ("isn't available for purchase yet") instead of the normal
-    /// "invalid license key" a real customer's real key would otherwise
-    /// see once this org exists but is still misconfigured — see
-    /// `LicenseCheckError.notYetConfigured`.
-    static var isConfigured: Bool {
-        !organizationId.hasPrefix("TODO") && !purchaseURL.contains("TODO")
-    }
+    static var isConfigured: Bool { true }
 }
 
 /// Local, tamper-evident cache for verified license state. See
@@ -355,6 +353,7 @@ final class LicenseChecker {
     /// placeholder). Read from there rather than duplicated here so the
     /// one TODO comment at the top of this file is the single place to fix.
     private static var organizationId: String { MacHubLicenseConfig.organizationId }
+    private static var benefitId: String { MacHubLicenseConfig.benefitId }
 
     private let urlSession: URLSession
 
@@ -423,9 +422,17 @@ final class LicenseChecker {
         // Bump this — and test against 2026-10 — before the Jan 2027
         // removal date.
         request.setValue("2026-04", forHTTPHeaderField: "Polar-Version")
+        // MacHub Pro shares a Polar organization with MacGroom Pro and the
+        // other mac-apps products — the org alone doesn't tell Polar which
+        // product a key was bought for, so a key valid for any of them
+        // would otherwise also validate here. Passing `benefit_id` scopes
+        // the check to MacHub's own License Keys benefit specifically; the
+        // response's own `benefit_id` is also cross-checked below as a
+        // second line of defense.
         request.httpBody = try JSONEncoder().encode([
             "key": licenseKey,
-            "organization_id": Self.organizationId
+            "organization_id": Self.organizationId,
+            "benefit_id": Self.benefitId
         ])
 
         let (data, httpResponse) = try await send(request)
@@ -440,15 +447,21 @@ final class LicenseChecker {
             let limitActivations: Int?
             let usage: Int?
             let expiresAt: String?
+            let benefitId: String?
 
             enum CodingKeys: String, CodingKey {
                 case key, status, usage
                 case limitActivations = "limit_activations"
                 case expiresAt = "expires_at"
+                case benefitId = "benefit_id"
             }
         }
 
         let response = try decode(PolarLicenseKeyResponse.self, from: data)
+
+        guard response.benefitId == Self.benefitId else {
+            throw LicenseCheckError.wrongProduct
+        }
 
         return License(
             key: response.key,
