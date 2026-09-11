@@ -14,6 +14,10 @@ struct MacHubApp: App {
     @State private var pendingSelection: Tool?
     @State private var showDiscardConfirm = false
 
+    // Launch-time "is a newer MacHub available?" check — see
+    // AppUpdateModel/UpdateCheckService.
+    @StateObject private var updateModel = AppUpdateModel()
+
     @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system
     @AppStorage("textSize") private var textSize = TextSizeSetting.medium
 
@@ -77,6 +81,11 @@ struct MacHubApp: App {
             .task(id: storedLicenseKey) {
                 await verifyLicense()
             }
+            // Once per launch, on the main window appearing — same call
+            // site mac-groom's DiskSweeperApp uses.
+            .task {
+                updateModel.checkForUpdates()
+            }
         }
         .windowResizability(.contentMinSize)
         .commands {
@@ -94,6 +103,7 @@ struct MacHubApp: App {
             SettingsView()
                 .tint(.appAccent)
                 .preferredColorScheme(appearanceMode.colorScheme)
+                .environmentObject(updateModel)
         }
     }
 
