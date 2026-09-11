@@ -42,7 +42,7 @@ struct AudioLoopView: View {
         guard let url = model.files.first else { return }
         Task.detached(priority: .userInitiated) {
             let d = try? AudioService.duration(of: url)
-            let fields = FileInfoService.audioFields(url)
+            let fields = await FileInfoService.audioFields(url)
             await MainActor.run { clipDuration = d; info = fields }
         }
     }

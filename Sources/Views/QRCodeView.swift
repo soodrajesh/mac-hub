@@ -97,7 +97,7 @@ struct QRCodeView: View {
                     Button {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(decoded.payload, forType: .string)
-                    } label: { Image(systemName: "doc.on.doc") }.buttonStyle(.plain)
+                    } label: { Image(systemName: "doc.on.doc") }.accessibilityLabel("Copy").buttonStyle(.plain)
                 }
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.08)))

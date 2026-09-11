@@ -124,11 +124,13 @@ struct PDFOrganizeView: View {
             .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.gray.opacity(0.3)))
             .overlay(alignment: .topLeading) {
                 Button { rotate(item) } label: { Image(systemName: "rotate.right") }
+                    .accessibilityLabel("Rotate page")
                     .buttonStyle(.borderless).controlSize(.mini)
                     .padding(4).background(.thinMaterial, in: Circle()).padding(3)
             }
             .overlay(alignment: .topTrailing) {
                 Button { remove(item) } label: { Image(systemName: "xmark.circle.fill") }
+                    .accessibilityLabel("Remove page")
                     .buttonStyle(.borderless).controlSize(.mini).foregroundStyle(.red)
                     .padding(4).background(.thinMaterial, in: Circle()).padding(3)
             }

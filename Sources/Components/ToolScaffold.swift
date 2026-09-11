@@ -328,8 +328,10 @@ struct FileList: View {
             if model.allowsMultiple {
                 HStack(spacing: 2) {
                     Button { model.moveUp(url) } label: { Image(systemName: "arrow.up") }
+                        .accessibilityLabel("Move up")
                         .disabled(idx == 0)
                     Button { model.moveDown(url) } label: { Image(systemName: "arrow.down") }
+                        .accessibilityLabel("Move down")
                         .disabled(idx == model.files.count - 1)
                 }
                 .buttonStyle(.borderless).appFont(.caption).foregroundStyle(.secondary)
@@ -346,6 +348,7 @@ struct FileList: View {
             Button { model.remove(url) } label: {
                 Image(systemName: "xmark.circle.fill")
             }
+            .accessibilityLabel("Remove")
             .buttonStyle(.plain).foregroundStyle(isSel ? Color.white.opacity(0.9) : .secondary)
         }
         .padding(.vertical, 4).padding(.horizontal, 8)

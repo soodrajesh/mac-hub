@@ -179,6 +179,7 @@ struct YouTubeDownloadView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                 }
+                .accessibilityLabel("Remove")
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .disabled(model.isRunning)

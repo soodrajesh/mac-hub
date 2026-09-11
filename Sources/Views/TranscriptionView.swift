@@ -56,7 +56,16 @@ struct TranscriptionView: View {
 
     private func reload() {
         guard let url = model.focused else { info = []; return }
-        info = url.conformsTo(.movie) ? FileInfoService.videoFields(url) : FileInfoService.audioFields(url)
+        if url.conformsTo(.movie) {
+            info = FileInfoService.videoFields(url)
+        } else {
+            info = []
+            Task { @MainActor in
+                let fields = await FileInfoService.audioFields(url)
+                guard model.focused == url else { return }
+                info = fields
+            }
+        }
     }
 
     @ViewBuilder

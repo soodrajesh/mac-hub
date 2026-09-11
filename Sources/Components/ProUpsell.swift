@@ -108,6 +108,7 @@ struct ProUpsellView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 10) {
                         IconTile(symbol: tool.symbol, tint: .appAccent, size: 30)
+                            .accessibilityHidden(true)
                         Text(tool.title)
                             .appFont(.title2, weight: .bold)
                         ProBadge()

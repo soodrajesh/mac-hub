@@ -92,9 +92,9 @@ struct RedactView: View {
             VStack(alignment: .leading, spacing: 10) {
                 if isPDF && pageCount > 1 {
                     HStack {
-                        Button { step(-1) } label: { Image(systemName: "chevron.left") }.disabled(pageIndex == 0)
+                        Button { step(-1) } label: { Image(systemName: "chevron.left") }.accessibilityLabel("Previous page").disabled(pageIndex == 0)
                         Text("Page \(pageIndex + 1) of \(pageCount)")
-                        Button { step(1) } label: { Image(systemName: "chevron.right") }.disabled(pageIndex >= pageCount - 1)
+                        Button { step(1) } label: { Image(systemName: "chevron.right") }.accessibilityLabel("Next page").disabled(pageIndex >= pageCount - 1)
                         Spacer()
                         Text("Boxes on this page: \(currentRects.wrappedValue.count)").appFont(.caption).foregroundStyle(.secondary)
                     }
