@@ -71,6 +71,8 @@ struct SettingsView: View {
                 .tabItem { Label("Appearance", systemImage: "paintbrush") }
             LicenseTab()
                 .tabItem { Label("License", systemImage: "checkmark.seal") }
+            UpdatesTab()
+                .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
             AboutTab()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
@@ -118,6 +120,39 @@ private struct LicenseTab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             LicenseManagementView()
+            Spacer()
+        }
+        .padding(20)
+    }
+}
+
+private struct UpdatesTab: View {
+    @EnvironmentObject var model: AppUpdateModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+
+            if let update = model.availableUpdate {
+                Text("MacHub \(update.version) is available (you have \(currentVersion))")
+                    .appFont(.callout)
+                if let notes = update.notes, !notes.isEmpty {
+                    Text(notes).appFont(.callout).foregroundStyle(.secondary)
+                }
+                Button("Get It") {
+                    guard let url = URL(string: update.url) else { return }
+                    NSWorkspace.shared.open(url)
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Text("You're on the latest version (\(currentVersion)).")
+                    .appFont(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button("Check for Updates") { model.checkForUpdates() }
+                .buttonStyle(.bordered)
+
             Spacer()
         }
         .padding(20)
