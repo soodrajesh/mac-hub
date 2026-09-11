@@ -130,6 +130,7 @@ struct VideoPreviewPlayer: View {
                 Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel(controller.isPlaying ? "Pause" : "Play")
             .disabled(controller.duration <= 0)
 
             Slider(

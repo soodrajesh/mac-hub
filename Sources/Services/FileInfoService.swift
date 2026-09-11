@@ -103,33 +103,36 @@ enum FileInfoService {
 
     // MARK: Audio
 
-    static func audioFields(_ url: URL) -> [MetadataField] {
+    static func audioFields(_ url: URL) async -> [MetadataField] {
         var f: [MetadataField] = []
         let asset = AVURLAsset(url: url)
-        let dur = CMTimeGetSeconds(asset.duration)
-        if dur.isFinite, dur > 0 { f.append(.init(label: "Duration", value: formatDuration(dur))) }
+        if let dur = try? await asset.load(.duration) {
+            let seconds = CMTimeGetSeconds(dur)
+            if seconds.isFinite, seconds > 0 { f.append(.init(label: "Duration", value: formatDuration(seconds))) }
+        }
         f.append(.init(label: "File size", value: url.fileSize.humanBytes))
-        if let track = asset.tracks(withMediaType: .audio).first {
-            if let desc = track.formatDescriptions.first {
-                let fd = desc as! CMFormatDescription
+        if let track = try? await asset.loadTracks(withMediaType: .audio).first {
+            if let fd = try? await track.load(.formatDescriptions).first {
                 f.append(.init(label: "Codec", value: codecName(CMFormatDescriptionGetMediaSubType(fd))))
                 if let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(fd)?.pointee {
                     f.append(.init(label: "Sample rate", value: "\(Int(asbd.mSampleRate)) Hz"))
                     f.append(.init(label: "Channels", value: "\(asbd.mChannelsPerFrame)"))
                 }
             }
-            if track.estimatedDataRate > 0 {
-                f.append(.init(label: "Bitrate", value: "\(Int(track.estimatedDataRate / 1000)) kbps"))
+            if let rate = try? await track.load(.estimatedDataRate), rate > 0 {
+                f.append(.init(label: "Bitrate", value: "\(Int(rate / 1000)) kbps"))
             }
         }
-        for item in AVMetadataItem.metadataItems(from: asset.commonMetadata, filteredByIdentifier: .commonIdentifierTitle) {
-            if let v = item.stringValue, !v.isEmpty { f.append(.init(label: "Title", value: v)) }
-        }
-        for item in AVMetadataItem.metadataItems(from: asset.commonMetadata, filteredByIdentifier: .commonIdentifierArtist) {
-            if let v = item.stringValue, !v.isEmpty { f.append(.init(label: "Artist", value: v)) }
-        }
-        for item in AVMetadataItem.metadataItems(from: asset.commonMetadata, filteredByIdentifier: .commonIdentifierAlbumName) {
-            if let v = item.stringValue, !v.isEmpty { f.append(.init(label: "Album", value: v)) }
+        if let commonMetadata = try? await asset.load(.commonMetadata) {
+            for item in AVMetadataItem.metadataItems(from: commonMetadata, filteredByIdentifier: .commonIdentifierTitle) {
+                if let v = try? await item.load(.stringValue), !v.isEmpty { f.append(.init(label: "Title", value: v)) }
+            }
+            for item in AVMetadataItem.metadataItems(from: commonMetadata, filteredByIdentifier: .commonIdentifierArtist) {
+                if let v = try? await item.load(.stringValue), !v.isEmpty { f.append(.init(label: "Artist", value: v)) }
+            }
+            for item in AVMetadataItem.metadataItems(from: commonMetadata, filteredByIdentifier: .commonIdentifierAlbumName) {
+                if let v = try? await item.load(.stringValue), !v.isEmpty { f.append(.init(label: "Album", value: v)) }
+            }
         }
         return f
     }

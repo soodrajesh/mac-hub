@@ -58,6 +58,7 @@ struct AudioTrimView: View {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
             Text("\(format(player.currentTime)) / \(format(duration))")
                 .appFont(.caption).monospacedDigit().foregroundStyle(.secondary)
         }
@@ -78,6 +79,7 @@ struct AudioTrimView: View {
                     } label: {
                         Image(systemName: "trash")
                     }
+                    .accessibilityLabel("Remove region")
                 }
                 .textFieldStyle(.roundedBorder)
 
@@ -140,7 +142,7 @@ struct AudioTrimView: View {
             do {
                 let d = try AudioService.duration(of: url)
                 let p = try AudioService.peaks(of: url, bucketCount: bucketCount)
-                let fields = FileInfoService.audioFields(url)
+                let fields = await FileInfoService.audioFields(url)
                 await MainActor.run {
                     duration = d
                     peaks = p

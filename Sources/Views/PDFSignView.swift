@@ -80,14 +80,14 @@ struct PDFSignView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 12) {
                         if pageCount > 1 {
-                            Button { step(-1) } label: { Image(systemName: "chevron.left") }.disabled(pageIndex == 0)
+                            Button { step(-1) } label: { Image(systemName: "chevron.left") }.accessibilityLabel("Previous page").disabled(pageIndex == 0)
                             Text("Page \(pageIndex + 1) / \(pageCount)").appFont(.callout)
-                            Button { step(1) } label: { Image(systemName: "chevron.right") }.disabled(pageIndex >= pageCount - 1)
+                            Button { step(1) } label: { Image(systemName: "chevron.right") }.accessibilityLabel("Next page").disabled(pageIndex >= pageCount - 1)
                             Divider().frame(height: 16)
                         }
-                        Button { setZoom(zoom - 0.25) } label: { Image(systemName: "minus.magnifyingglass") }
+                        Button { setZoom(zoom - 0.25) } label: { Image(systemName: "minus.magnifyingglass") }.accessibilityLabel("Zoom out")
                         Text("\(Int(zoom * 100))%").appFont(.caption).monospacedDigit().frame(width: 44)
-                        Button { setZoom(zoom + 0.25) } label: { Image(systemName: "plus.magnifyingglass") }
+                        Button { setZoom(zoom + 0.25) } label: { Image(systemName: "plus.magnifyingglass") }.accessibilityLabel("Zoom in")
                         Button("Fit") { setZoom(1) }.disabled(zoom == 1)
                         Spacer()
                         Text(placeRect.isEmpty ? "Drag a box to place the signature" : "Pinch/scroll to zoom for precision")

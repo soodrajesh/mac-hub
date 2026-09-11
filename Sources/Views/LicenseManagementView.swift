@@ -69,6 +69,7 @@ struct LicenseManagementView: View {
                             .appFont(.body)
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityLabel("Remove license key")
                     .help("Remove stored license key")
                 }
 

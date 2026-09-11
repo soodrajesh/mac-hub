@@ -45,9 +45,13 @@ struct ImageEditView: View {
                 if working != nil {
                     HStack(spacing: 8) {
                         Button { rotate(-1) } label: { Image(systemName: "rotate.left") }
+                            .accessibilityLabel("Rotate left")
                         Button { rotate(1) } label: { Image(systemName: "rotate.right") }
+                            .accessibilityLabel("Rotate right")
                         Button { flip(h: true) } label: { Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right") }
+                            .accessibilityLabel("Flip horizontal")
                         Button { flip(v: true) } label: { Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down") }
+                            .accessibilityLabel("Flip vertical")
                         Divider().frame(height: 18)
                         Button("Apply Crop") { applyCrop() }.disabled(cropRects.isEmpty)
                         Spacer()
