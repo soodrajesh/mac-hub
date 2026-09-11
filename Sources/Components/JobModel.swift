@@ -93,19 +93,22 @@ final class JobModel: ObservableObject {
         isRunning = true; error = nil; result = nil; progress = 0
         status = "Working…"
         task = Task.detached(priority: .userInitiated) { [weak self] in
+            // Re-capturing an already-weak `self` in a nested closure makes it
+            // a "captured var" under strict concurrency (Swift 6 error). Bind
+            // once here so every closure below captures a plain, Sendable-safe
+            // `let` instead of recapturing the weak slot.
+            guard let self else { return }
             let report: @Sendable (Double) -> Void = { p in
-                Task { @MainActor [weak self] in self?.progress = min(1, max(0, p)) }
+                Task { @MainActor in self.progress = min(1, max(0, p)) }
             }
             do {
                 let r = try work(input, report)
                 await MainActor.run {
-                    guard let self else { return }
                     self.result = r; self.isRunning = false; self.progress = 1
                     self.status = Task.isCancelled ? "Cancelled" : "Done"
                 }
             } catch {
                 await MainActor.run {
-                    guard let self else { return }
                     self.error = error.localizedDescription; self.isRunning = false
                     self.status = ""
                 }
