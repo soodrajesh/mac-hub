@@ -3,8 +3,6 @@ import UniformTypeIdentifiers
 
 struct PDFCompressView: View {
     @StateObject private var model = JobModel(types: [.pdf])
-    @State private var useGhostscript = Ghostscript.isAvailable
-    @State private var gsPreset: Ghostscript.Preset = .ebook
     @State private var dpi = 150.0
     @State private var quality = 0.6
     @State private var info: [MetadataField] = []
@@ -19,32 +17,16 @@ struct PDFCompressView: View {
         ) {
             VStack(alignment: .leading, spacing: 12) {
                 MetadataPanel(fields: info)
-                if Ghostscript.isAvailable {
-                    Toggle("Use Ghostscript (higher quality, keeps text)", isOn: $useGhostscript)
-                    Label("Ghostscript detected", systemImage: "checkmark.seal")
-                        .appFont(.caption).foregroundStyle(.green)
-                } else {
-                    Label("Ghostscript not found — using native compression. Install with `brew install ghostscript` for better results.",
-                          systemImage: "info.circle")
-                        .appFont(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Text("Resolution: \(Int(dpi)) dpi")
+                    Slider(value: $dpi, in: 72...300, step: 12).frame(width: 180)
                 }
-
-                if useGhostscript && Ghostscript.isAvailable {
-                    Picker("Preset", selection: $gsPreset) {
-                        ForEach(Ghostscript.Preset.allCases) { Text($0.label).tag($0) }
-                    }
-                } else {
-                    HStack {
-                        Text("Resolution: \(Int(dpi)) dpi")
-                        Slider(value: $dpi, in: 72...300, step: 12).frame(width: 180)
-                    }
-                    HStack {
-                        Text("JPEG quality: \(Int(quality * 100))%")
-                        Slider(value: $quality, in: 0.2...0.9).frame(width: 180)
-                    }
-                    Text("Native mode rasterizes pages (selectable text becomes an image).")
-                        .appFont(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Text("JPEG quality: \(Int(quality * 100))%")
+                    Slider(value: $quality, in: 0.2...0.9).frame(width: 180)
                 }
+                Text("Pages with real selectable text are left untouched — only scanned/photo pages are recompressed at the settings above.")
+                    .appFont(.caption).foregroundStyle(.secondary)
             }
         }
         .onChange(of: model.files) { _ in info = model.focused.map { FileInfoService.pdfFields($0) } ?? [] }
@@ -52,8 +34,6 @@ struct PDFCompressView: View {
     }
 
     private func run() {
-        let useGS = useGhostscript && Ghostscript.isAvailable
-        let preset = gsPreset
         let d = dpi, q = quality
         let dir = model.outputDir
         model.runWithProgress { files, report in
@@ -63,11 +43,7 @@ struct PDFCompressView: View {
                 if Task.isCancelled { break }
                 let out = OutputPath.make(for: url, dir: dir, suffix: "-compressed", ext: "pdf")
                 do {
-                    if useGS {
-                        try Ghostscript.compress(url, to: out, preset: preset)
-                    } else {
-                        try PDFService.compressNative(url, dpi: d, quality: q, to: out)
-                    }
+                    try PDFService.compressNative(url, dpi: d, quality: q, to: out)
                     let before = url.fileSize, after = out.fileSize
                     let pct = before > 0 ? Int((1 - Double(after) / Double(before)) * 100) : 0
                     result.outputs.append(out)

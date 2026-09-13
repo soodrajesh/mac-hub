@@ -42,7 +42,18 @@ enum YtDlp {
         case mp3(AudioBitrate)
     }
 
+    /// The copy build.sh embeds at `Contents/Resources/bin/<name>` — checked
+    /// before any system/Homebrew path so a fresh install works with zero
+    /// setup. Homebrew paths stay as a fallback for anyone building from
+    /// source without network access to fetch the bundled binaries.
+    private static func bundledPath(_ name: String) -> String? {
+        guard let url = Bundle.main.resourceURL?.appendingPathComponent("bin/\(name)"),
+              FileManager.default.isExecutableFile(atPath: url.path) else { return nil }
+        return url.path
+    }
+
     static let ytDlpPath: String? = {
+        if let bundled = bundledPath("yt-dlp") { return bundled }
         let candidates = ["/opt/homebrew/bin/yt-dlp", "/usr/local/bin/yt-dlp", "/usr/bin/yt-dlp"]
         for c in candidates where FileManager.default.isExecutableFile(atPath: c) {
             return c
@@ -66,6 +77,7 @@ enum YtDlp {
     }()
 
     static let ffmpegPath: String? = {
+        if let bundled = bundledPath("ffmpeg") { return bundled }
         let candidates = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
         for c in candidates where FileManager.default.isExecutableFile(atPath: c) {
             return c

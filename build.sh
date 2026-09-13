@@ -114,6 +114,40 @@ rm -rf "$TMPBIN"
 
 echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/MacHub"))"
 
+# --- Bundle helper binaries: yt-dlp + ffmpeg ship inside the app itself ---
+# Video Downloader/Extract Audio/Convert & Compress no longer depend on the
+# user having `brew install`'d anything. Downloaded once into ThirdParty/
+# (gitignored) and cached there across rebuilds — re-run with
+# `rm -rf ThirdParty` to force a fresh fetch.
+#
+# yt-dlp: official universal (arm64+x86_64) binary, Unlicense (public
+# domain) — no licensing concern bundling it.
+# ffmpeg: the only readily-available static build is x86_64-only (runs via
+# Rosetta on Apple Silicon) and GPL-licensed. It's invoked only via
+# subprocess here, never linked into MacHub's own binary — the same "mere
+# aggregation" posture this app already relied on when shelling out to a
+# Homebrew-installed ffmpeg. A universal, LGPL-only build (compiled from
+# source with --disable-gpl) would remove both caveats, but is a separate,
+# larger undertaking.
+THIRDPARTY="$(dirname "$0")/ThirdParty"
+mkdir -p "$THIRDPARTY" "$APP/Contents/Resources/bin"
+
+if [ ! -x "$THIRDPARTY/yt-dlp" ]; then
+  echo "Fetching yt-dlp (universal, public domain)…"
+  curl -sL -o "$THIRDPARTY/yt-dlp" "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+  chmod +x "$THIRDPARTY/yt-dlp"
+fi
+if [ ! -x "$THIRDPARTY/ffmpeg" ]; then
+  echo "Fetching ffmpeg (x86_64, GPL — runs via Rosetta on Apple Silicon)…"
+  curl -sL -o "$THIRDPARTY/ffmpeg.zip" "https://evermeet.cx/ffmpeg/getrelease/zip"
+  unzip -o -q "$THIRDPARTY/ffmpeg.zip" -d "$THIRDPARTY"
+  rm -f "$THIRDPARTY/ffmpeg.zip"
+  chmod +x "$THIRDPARTY/ffmpeg"
+fi
+cp "$THIRDPARTY/yt-dlp" "$APP/Contents/Resources/bin/yt-dlp"
+cp "$THIRDPARTY/ffmpeg" "$APP/Contents/Resources/bin/ffmpeg"
+echo "Bundled: yt-dlp ($(lipo -archs "$THIRDPARTY/yt-dlp" 2>/dev/null || echo x86_64)), ffmpeg (x86_64)"
+
 # --- Sign: hardened runtime + entitlements, no App Sandbox ---
 # A real Developer ID Application identity is used when present. That's what
 # notarization requires (see notarize.sh), and it also keeps TCC permission
@@ -132,8 +166,22 @@ if [ -z "$IDENTITY" ]; then
   echo "  > Manage Certificates > + > Developer ID Application, then rebuild."
   IDENTITY="-"
 fi
-# No --deep: Apple deprecated it, and it signs any nested code with the
-# *outer* entitlements. These bundles have no nested code to sign anyway.
+# Sign nested code first, then the outer bundle — Apple's required order,
+# and notarization rejects the submission if any nested Mach-O is missing
+# its own signature. No --deep: it signs nested code with the *outer*
+# entitlements, which is wrong for standalone helper tools like these
+# (they need no entitlements of their own).
+if [ "$IDENTITY" != "-" ]; then
+  # yt-dlp needs disable-library-validation on ITS OWN signature (not
+  # MacHub's): it's a PyInstaller build that dlopen()s its own embedded
+  # Python.framework at launch, which keeps a different Team ID than this
+  # re-signature — see ThirdParty-YtDlp.entitlements for the full story.
+  codesign --force --options runtime --timestamp --entitlements "$(dirname "$0")/ThirdParty-YtDlp.entitlements" --sign "$IDENTITY" "$APP/Contents/Resources/bin/yt-dlp"
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP/Contents/Resources/bin/ffmpeg"
+else
+  codesign --force --entitlements "$(dirname "$0")/ThirdParty-YtDlp.entitlements" --sign "$IDENTITY" "$APP/Contents/Resources/bin/yt-dlp"
+  codesign --force --sign "$IDENTITY" "$APP/Contents/Resources/bin/ffmpeg"
+fi
 codesign --force --options runtime --entitlements "$(dirname "$0")/MacHub.entitlements" --sign "$IDENTITY" "$APP"
 echo "Signed with: $IDENTITY (hardened runtime on)"
 
