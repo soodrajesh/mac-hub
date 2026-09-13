@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	Scoped to the bundled yt-dlp helper only — never applied to MacHub's own
+	binary (see MacHub.entitlements, which explicitly keeps this false).
+
+	yt-dlp's official release is a PyInstaller-frozen binary: at launch it
+	unpacks its own embedded Python.framework to a temp dir and dlopen()s it.
+	That framework keeps whatever signature PyInstaller's build gave it,
+	which has a different Team ID than the Developer ID build.sh re-signs
+	the outer yt-dlp executable with. Hardened Runtime's library validation
+	then refuses the dlopen ("different Team IDs") and yt-dlp fails to
+	launch at all. This entitlement is the exact, minimal fix Apple
+	documents for exactly this case — it does not weaken MacHub's own
+	process in any way, since it's signed onto yt-dlp's binary, not MacHub's.
+	-->
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
+</plist>

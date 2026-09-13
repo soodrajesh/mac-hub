@@ -2,6 +2,9 @@
 MacHub.app/
 *.dmg
 
+# Bundled third-party helper binaries (downloaded + cached by build.sh)
+ThirdParty/
+
 # macOS
 .DS_Store
 .AppleDouble

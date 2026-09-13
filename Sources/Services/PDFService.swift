@@ -305,7 +305,15 @@ enum PDFService {
     // MARK: Compression
 
     /// Native compression: rasterize each page to JPEG at `dpi` and rebuild.
-    /// Reliable shrink for scanned PDFs; rasterizes text (loses selectable text).
+    /// Pages with real selectable text are left completely untouched instead
+    /// — rasterizing them would trade away selectable text for little size
+    /// benefit, since a text page's own vector content is rarely what makes
+    /// a PDF large. The actual bloat is almost always the scanned/photo
+    /// pages, which have no text to lose in the first place; those still get
+    /// the full rasterize + recompress treatment below. `PDFPage.string`
+    /// (free via PDFKit) is what tells the two apart — no Ghostscript, no
+    /// bundled binary, no user install, and no quality loss where it
+    /// actually matters.
     static func compressNative(_ url: URL, dpi: Double, quality: Double, to output: URL) throws {
         let doc = try open(url)
         let out = PDFDocument()
@@ -313,6 +321,11 @@ enum PDFService {
         var idx = 0
         for p in 0..<doc.pageCount {
             guard let page = doc.page(at: p) else { continue }
+            let textLength = page.string?.trimmingCharacters(in: .whitespacesAndNewlines).count ?? 0
+            if textLength > 20, let kept = page.copy() as? PDFPage {
+                out.insert(kept, at: idx); idx += 1
+                continue
+            }
             let bounds = page.bounds(for: .mediaBox)
             let w = Int((bounds.width * scale).rounded())
             let h = Int((bounds.height * scale).rounded())
