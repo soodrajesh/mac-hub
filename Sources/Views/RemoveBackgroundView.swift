@@ -19,6 +19,14 @@ struct RemoveBackgroundView: View {
     @State private var rotation: Double = 0
     @State private var scale: Double = 1.0
 
+    // Cmd+Z/Cmd+Shift+Z for the Transform controls — there was previously no
+    // UndoManager anywhere in this tool, so Cmd+Z had nothing to act on.
+    @State private var priorRotation: Double = 0
+    @State private var priorScale: Double = 1.0
+    @State private var transformUndoStack: [(rotation: Double, scale: Double)] = []
+    @State private var transformRedoStack: [(rotation: Double, scale: Double)] = []
+    @State private var isApplyingUndoRedo = false
+
     /// Normalized (0...1) crop selection in image space, drawn by the user
     /// to help Vision focus on the subject when the full-frame result is poor.
     @State private var selectionRect: CGRect?
@@ -82,20 +90,33 @@ struct RemoveBackgroundView: View {
                         scale: $scale,
                         onReset: resetTransforms
                     )
-                    .onChange(of: rotation) { _ in applyTransforms() }
-                    .onChange(of: scale) { _ in applyTransforms() }
+                    .onChange(of: rotation) { _ in recordTransformChange() }
+                    .onChange(of: scale) { _ in recordTransformChange() }
                 }
             }
         }
         }
         .onChange(of: model.files) { _ in reload() }
         .onChange(of: model.selected) { _ in reload() }
+        .background(
+            Group {
+                Button("Undo", action: undoTransform)
+                    .keyboardShortcut("z", modifiers: .command)
+                    .disabled(!isPreviewing || transformUndoStack.isEmpty)
+                Button("Redo", action: redoTransform)
+                    .keyboardShortcut("z", modifiers: [.command, .shift])
+                    .disabled(!isPreviewing || transformRedoStack.isEmpty)
+            }
+            .hidden()
+        )
     }
 
     private func reload() {
         cutout = nil; cutoutURL = nil; cutoutSelection = nil
         previewImage = nil; basePreviewImage = nil
-        isPreviewing = false; selectionRect = nil; resetTransforms()
+        isPreviewing = false; selectionRect = nil
+        transformUndoStack.removeAll(); transformRedoStack.removeAll()
+        resetTransforms()
         inputImage = model.focused.flatMap { NSImage(contentsOf: $0) }
         info = model.focused.map { FileInfoService.imageFields($0) } ?? []
     }
@@ -107,6 +128,7 @@ struct RemoveBackgroundView: View {
             isPreviewing = false
             previewImage = nil; basePreviewImage = nil
             cutout = nil; cutoutURL = nil; cutoutSelection = nil
+            transformUndoStack.removeAll(); transformRedoStack.removeAll()
             resetTransforms()
         } else {
             selectionRect = nil
@@ -192,6 +214,7 @@ struct RemoveBackgroundView: View {
                     basePreviewImage = img
                     previewImage = img
                     isPreviewing = true
+                    transformUndoStack.removeAll(); transformRedoStack.removeAll()
                     resetTransforms()
                     model.isRunning = false
                 }
@@ -229,6 +252,51 @@ struct RemoveBackgroundView: View {
     private func resetTransforms() {
         rotation = 0
         scale = 1.0
+        priorRotation = 0
+        priorScale = 1.0
+        // Don't rely solely on the .onChange(of: rotation/scale) modifiers to
+        // repaint — if either value was already at its default, setting it
+        // again fires no onChange and the preview silently keeps showing the
+        // old transformed image. Force the repaint directly so Reset always
+        // has a visible effect.
+        applyTransforms()
+    }
+
+    /// Fires on every rotate/scale change. Snapshots the value it was at
+    /// *before* this change onto the undo stack, then applies the new one —
+    /// this is what makes Cmd+Z/Cmd+Shift+Z actually do something.
+    private func recordTransformChange() {
+        guard !isApplyingUndoRedo else { return }
+        transformUndoStack.append((priorRotation, priorScale))
+        if transformUndoStack.count > 50 { transformUndoStack.removeFirst() }
+        transformRedoStack.removeAll()
+        priorRotation = rotation
+        priorScale = scale
+        applyTransforms()
+    }
+
+    private func undoTransform() {
+        guard let last = transformUndoStack.popLast() else { return }
+        transformRedoStack.append((rotation, scale))
+        isApplyingUndoRedo = true
+        rotation = last.rotation
+        scale = last.scale
+        isApplyingUndoRedo = false
+        priorRotation = rotation
+        priorScale = scale
+        applyTransforms()
+    }
+
+    private func redoTransform() {
+        guard let next = transformRedoStack.popLast() else { return }
+        transformUndoStack.append((rotation, scale))
+        isApplyingUndoRedo = true
+        rotation = next.rotation
+        scale = next.scale
+        isApplyingUndoRedo = false
+        priorRotation = rotation
+        priorScale = scale
+        applyTransforms()
     }
 
     private func applyTransforms() {
