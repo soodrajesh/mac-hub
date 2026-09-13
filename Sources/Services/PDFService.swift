@@ -473,9 +473,18 @@ enum PDFService {
     }
 
     /// Removes a password (given the current one), writing an unprotected copy.
+    /// Plain `doc.write(to:)` was NOT enough here — a PDFDocument loaded from
+    /// an encrypted source keeps reapplying its original security handler on
+    /// write even after a successful `unlock(withPassword:)`, so the "removed
+    /// password" file silently still required the same password to open.
+    /// Explicit empty password options are what actually strips it.
     static func decrypt(_ url: URL, password: String, to output: URL) throws {
         let doc = try open(url, password: password)
-        guard doc.write(to: output) else { throw JobError.cannotWrite(output) }
+        let opts: [PDFDocumentWriteOption: Any] = [
+            .userPasswordOption: "",
+            .ownerPasswordOption: "",
+        ]
+        guard doc.write(to: output, withOptions: opts) else { throw JobError.cannotWrite(output) }
     }
 
     enum StampPosition: String, CaseIterable, Identifiable {

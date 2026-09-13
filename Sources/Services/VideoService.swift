@@ -108,6 +108,14 @@ enum VideoService {
     static func extractAudio(_ url: URL, format: AudioFormat, to output: URL,
                              onProgress: (@Sendable (Double) -> Void)? = nil) throws -> URL {
         let retyped = OutputPath.retype(output, ext: format.ext)
+        // Check up front, before either encode path: a source with no audio
+        // track at all can't be fixed by falling back to ffmpeg (that retry
+        // exists for codecs AVFoundation can't decode, not for "there's
+        // nothing to extract"), so failing here avoids a confusing raw
+        // ffmpeg stderr dump replacing this clear message.
+        guard AVURLAsset(url: url).tracks(withMediaType: .audio).first != nil else {
+            throw JobError.badInput("\(url.lastPathComponent) has no audio track")
+        }
         if format == .mp3 {
             guard let ffmpeg = YtDlp.ffmpegPath else {
                 throw JobError.failed("MP3 export requires ffmpeg. Install with `brew install ffmpeg` — or choose M4A.")
