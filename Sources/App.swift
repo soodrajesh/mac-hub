@@ -144,6 +144,10 @@ struct MacHubApp: App {
             isProLicensed = false
             return
         }
+        if OwnerAccess.isOwnerKey(storedLicenseKey) {
+            isProLicensed = true
+            return
+        }
         do {
             let license = try await LicenseChecker().verify(licenseKey: storedLicenseKey)
             isProLicensed = license.isValid
