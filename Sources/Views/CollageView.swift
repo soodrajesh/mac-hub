@@ -14,7 +14,8 @@ struct CollageView: View {
     // Freeform mode
     @State private var items: [Element] = []
     @State private var selected: UUID?
-    @State private var aspect: CanvasAspect = .fourThree
+    @State private var aspect: PosterSize = .square
+    @State private var exportFormat: ImageService.Format = .png
     @State private var moveBaseline: CGPoint?
     @State private var availWidth: CGFloat = 700
     @State private var snapX = false      // element x snapped to canvas center
@@ -45,10 +46,41 @@ struct CollageView: View {
         var bold: Bool = false
         var italic: Bool = false
     }
-    enum CanvasAspect: String, CaseIterable, Identifiable {
-        case square = "1:1", fourThree = "4:3", sixteenNine = "16:9"
+    /// Canvas shape for Freeform posters — plain aspect ratios plus exact
+    /// pixel dimensions for the social-media formats people actually export
+    /// to, so "Save As" produces the right size directly instead of a
+    /// same-ratio-but-wrong-resolution guess.
+    enum PosterSize: String, CaseIterable, Identifiable {
+        case square = "Square (1:1)"
+        case classic = "Classic (4:3)"
+        case widescreen = "Widescreen (16:9)"
+        case igPortrait = "Instagram Portrait"
+        case igStory = "Instagram/FB Story"
+        case fbPost = "Facebook Post"
+        case twitterPost = "X / Twitter Post"
+        case linkedinPost = "LinkedIn Post"
+        case pinterestPin = "Pinterest Pin"
+        case ytThumbnail = "YouTube Thumbnail"
+
         var id: String { rawValue }
-        var ratio: CGFloat { self == .square ? 1 : self == .fourThree ? 4.0 / 3 : 16.0 / 9 }
+
+        var pixelSize: (w: Int, h: Int) {
+            switch self {
+            case .square:       return (1600, 1600)
+            case .classic:      return (1600, 1200)
+            case .widescreen:   return (1600, 900)
+            case .igPortrait:   return (1080, 1350)
+            case .igStory:      return (1080, 1920)
+            case .fbPost:       return (1200, 630)
+            case .twitterPost:  return (1600, 900)
+            case .linkedinPost: return (1200, 627)
+            case .pinterestPin: return (1000, 1500)
+            case .ytThumbnail:  return (1280, 720)
+            }
+        }
+
+        var ratio: CGFloat { CGFloat(pixelSize.w) / CGFloat(pixelSize.h) }
+        var dimensionLabel: String { "\(pixelSize.w)×\(pixelSize.h)" }
     }
 
     private var isFreeform: Bool { layout == .freeform }
@@ -59,7 +91,7 @@ struct CollageView: View {
             title: "Collage",
             subtitle: "Grid/strip for a uniform layout, or Freeform to drag, resize, rotate images & text — a mini poster maker.",
             model: model,
-            runLabel: isFreeform ? "Export PNG" : "Create Collage",
+            runLabel: isFreeform ? "Save As \(exportFormat.label)…" : "Create Collage",
             onRun: run,
             previewVisible: !isFreeform,
             preview: { previewPane }
@@ -128,16 +160,31 @@ struct CollageView: View {
     private var freeformControls: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
-                Picker("Canvas", selection: $aspect) { ForEach(CanvasAspect.allCases) { Text($0.rawValue).tag($0) } }
-                    .pickerStyle(.segmented).frame(width: 160)
+                Picker("Size", selection: $aspect) {
+                    ForEach(PosterSize.allCases) { size in
+                        Text("\(size.rawValue) · \(size.dimensionLabel)").tag(size)
+                    }
+                }.frame(width: 260)
                 Picker("BG", selection: $white) { Text("White").tag(true); Text("Black").tag(false) }
                     .pickerStyle(.segmented).frame(width: 110)
+                Picker("Format", selection: $exportFormat) {
+                    ForEach([ImageService.Format.png, .jpeg, .heic, .tiff]) { Text($0.label).tag($0) }
+                }.frame(width: 140)
                 Button { addText() } label: { Label("Add Text", systemImage: "textformat") }
             }
             HStack(spacing: 8) {
                 Button { bring(forward: true) } label: { Label("Forward", systemImage: "square.3.layers.3d.top.filled") }.disabled(selected == nil)
                 Button { bring(forward: false) } label: { Label("Back", systemImage: "square.3.layers.3d.bottom.filled") }.disabled(selected == nil)
                 Button { deleteSelected() } label: { Label("Delete", systemImage: "trash") }.disabled(selected == nil)
+            }
+            if imageItemCount > 0 {
+                HStack(spacing: 8) {
+                    Text("Template:").appFont(.callout).foregroundStyle(.secondary)
+                    Button("Grid") { applyTemplate(templateGrid(count: imageItemCount)) }
+                    Button("Featured") { applyTemplate(templateFeatured(count: imageItemCount)) }
+                    Button("Strip") { applyTemplate(templateStrip(count: imageItemCount)) }
+                }
+                .buttonStyle(.bordered).controlSize(.small)
             }
             Text("Drag to move, corner handle to resize, top handle to rotate. Tap empty space to deselect.")
                 .appFont(.caption).foregroundStyle(.secondary)
@@ -310,6 +357,80 @@ struct CollageView: View {
     // MARK: Model helpers
 
     private var selectedIndex: Int? { selected.flatMap { s in items.firstIndex { $0.id == s } } }
+    private var imageItemCount: Int { items.filter { !$0.isText }.count }
+
+    // MARK: Templates
+    //
+    // Auto-arranges the images already on the canvas into a non-overlapping
+    // layout that stays fully inside the canvas border with a consistent
+    // margin/gutter — the alternative to placing every image by hand.
+    // Each template is generated fresh for however many images are actually
+    // on the canvas right now (not fixed to a hardcoded count).
+
+    private static let templateMargin: CGFloat = 0.04
+    private static let templateGap: CGFloat = 0.025
+
+    /// Even rows/columns sized to fit `count` images — cols = ceil(sqrt(n)).
+    private func templateGrid(count: Int) -> [CGRect] {
+        guard count > 0 else { return [] }
+        let m = Self.templateMargin, g = Self.templateGap
+        let cols = Int(ceil(sqrt(Double(count))))
+        let rows = Int(ceil(Double(count) / Double(cols)))
+        let sw = (1 - 2 * m - CGFloat(cols - 1) * g) / CGFloat(cols)
+        let sh = (1 - 2 * m - CGFloat(rows - 1) * g) / CGFloat(rows)
+        return (0..<count).map { i in
+            let col = i % cols, row = i / cols
+            return CGRect(x: m + CGFloat(col) * (sw + g), y: m + CGFloat(row) * (sh + g), width: sw, height: sh)
+        }
+    }
+
+    /// First image large on the left; the rest stacked in a column on the right.
+    private func templateFeatured(count: Int) -> [CGRect] {
+        guard count > 0 else { return [] }
+        let m = Self.templateMargin, g = Self.templateGap
+        if count == 1 { return [CGRect(x: m, y: m, width: 1 - 2 * m, height: 1 - 2 * m)] }
+        let leftW = (1 - 2 * m - g) * 0.6
+        let rightW = (1 - 2 * m - g) - leftW
+        var slots = [CGRect(x: m, y: m, width: leftW, height: 1 - 2 * m)]
+        let rest = count - 1
+        let sh = (1 - 2 * m - CGFloat(rest - 1) * g) / CGFloat(rest)
+        for i in 0..<rest {
+            slots.append(CGRect(x: m + leftW + g, y: m + CGFloat(i) * (sh + g), width: rightW, height: sh))
+        }
+        return slots
+    }
+
+    /// A single row (or column, on a portrait canvas) of equal-sized images.
+    private func templateStrip(count: Int) -> [CGRect] {
+        guard count > 0 else { return [] }
+        let m = Self.templateMargin, g = Self.templateGap
+        if aspect.ratio < 1 {
+            let sh = (1 - 2 * m - CGFloat(count - 1) * g) / CGFloat(count)
+            return (0..<count).map { CGRect(x: m, y: m + CGFloat($0) * (sh + g), width: 1 - 2 * m, height: sh) }
+        }
+        let sw = (1 - 2 * m - CGFloat(count - 1) * g) / CGFloat(count)
+        return (0..<count).map { CGRect(x: m + CGFloat($0) * (sw + g), y: m, width: sw, height: 1 - 2 * m) }
+    }
+
+    /// Aspect-fits each image (in the order it was added) into its slot,
+    /// centered, never exceeding the slot's bounds — so nothing ever spills
+    /// past the canvas border or overlaps its neighbor.
+    private func applyTemplate(_ slots: [CGRect]) {
+        let r = aspect.ratio
+        let indices = items.indices.filter { !items[$0].isText }
+        for (idx, slot) in zip(indices, slots) {
+            let elAspect = max(items[idx].aspect, 0.0001)
+            var widthFrac = slot.width
+            var heightFrac = widthFrac * elAspect * r
+            if heightFrac > slot.height {
+                heightFrac = slot.height
+                widthFrac = heightFrac / (elAspect * r)
+            }
+            items[idx].widthFrac = widthFrac
+            items[idx].center = CGPoint(x: slot.midX, y: slot.midY)
+            items[idx].rotation = 0
+        }
+    }
 
     private func addText() {
         var el = Element(isText: true, center: CGPoint(x: 0.5, y: 0.35))
@@ -362,7 +483,7 @@ struct CollageView: View {
     }
 
     private func exportFreeform() {
-        let canvasW = 1600, canvasH = Int(1600 / aspect.ratio)
+        let canvasW = aspect.pixelSize.w, canvasH = aspect.pixelSize.h
         let fitems: [FreeformService.Item] = items.map { el in
             let content: FreeformService.Content = el.isText
                 ? .text(el.text, fontName: el.fontName, fontFrac: el.fontFrac,
@@ -375,10 +496,10 @@ struct CollageView: View {
         guard !fitems.isEmpty else { model.error = "Add images or text first"; return }
         guard let img = FreeformService.render(fitems, canvasW: canvasW, canvasH: canvasH,
                                                bg: white ? .white : .black) else { model.error = "Render failed"; return }
-        let base = model.files.first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("poster.png")
-        let out = OutputPath.make(for: base, dir: model.outputDir, suffix: "-poster", ext: "png")
-        do { try ImageService.write(img, to: out, format: .png, quality: 1)
-            var r = JobResult(); r.outputs.append(out); r.messages.append("Exported \(img.width)×\(img.height)")
+        let base = model.files.first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("poster.\(exportFormat.ext)")
+        let out = OutputPath.make(for: base, dir: model.outputDir, suffix: "-poster", ext: exportFormat.ext)
+        do { try ImageService.write(img, to: out, format: exportFormat, quality: 0.9)
+            var r = JobResult(); r.outputs.append(out); r.messages.append("Exported \(img.width)×\(img.height) \(exportFormat.label)")
             model.result = r
             unsavedWork.hasUnsavedWork = false
         } catch { model.error = error.localizedDescription }

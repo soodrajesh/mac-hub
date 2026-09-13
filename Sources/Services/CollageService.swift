@@ -5,9 +5,9 @@ import CoreGraphics
 enum CollageService {
     enum Layout: String, CaseIterable, Identifiable {
         case grid = "Grid"
+        case freeform = "Freeform"
         case horizontal = "Horizontal"
         case vertical = "Vertical"
-        case freeform = "Freeform"
         var id: String { rawValue }
     }
 
