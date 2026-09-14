@@ -46,25 +46,13 @@ See **MacHub Pro** below for how licensing works.
 ## Prerequisites
 
 - **macOS 13+** and the **Swift toolchain** (`swift --version`) — required to build.
-- **Ghostscript** (recommended) — for high-quality, text-preserving PDF compression:
-
-  ```bash
-  brew install ghostscript
-  ```
-
-  Without it the app still runs, but Compress PDF falls back to native
-  rasterization (good for scans, not for text PDFs). The app auto-detects `gs`
-  at `/opt/homebrew/bin`, `/usr/local/bin`, or on `PATH`.
-
-- **yt-dlp + ffmpeg** (required for Video Downloader) — batch download videos from
-  any site and extract audio:
-
-  ```bash
-  brew install yt-dlp ffmpeg
-  ```
-
-  Both are required; the app auto-detects them and shows a hint if missing. yt-dlp
-  supports 1000+ video sites (YouTube, TikTok, Instagram, Twitter/X, Twitch, Reddit, etc.).
+  (Remove Background needs macOS 14+ at runtime; everything else works on 13+.)
+- **yt-dlp + ffmpeg** — bundled into `MacHub.app/Contents/Resources/bin/` by
+  `build.sh` (downloaded once at build time, then code-signed individually
+  and packaged with the app). Nothing to install — Video Downloader and the
+  video/audio tools work out of the box on a fresh install, no Homebrew
+  required. yt-dlp supports 1000+ video sites (YouTube, TikTok, Instagram,
+  Twitter/X, Twitch, Reddit, etc.).
 
 - **Transcribe** — needs a one-time Speech Recognition permission grant; clicking
   **Transcribe** prompts for it automatically the first time. Language picker is
@@ -86,21 +74,24 @@ open /Applications/MacHub.app
 
 ## Compression presets (Compress PDF)
 
-Ghostscript mode offers presets — pick based on how small you need it:
+Compression is 100% native PDFKit — no Ghostscript, nothing to install.
+Pages with real selectable text are copied through untouched (their size is
+already-small fonts and vectors, not downsamplable images); only
+scanned/photo pages get rasterized and recompressed, controlled by two
+sliders:
 
-| Preset | Image DPI | Use for |
-|--------|-----------|---------|
-| Screen | 72 | Email / smallest size (biggest reduction) |
-| eBook | 150 | Balanced (default) |
-| Printer | 300 | High quality (may not shrink text PDFs) |
+| Slider | Range | Default |
+|--------|-------|---------|
+| Resolution (DPI) | 72–300 | 150 |
+| JPEG quality | 20–90% | 60% |
 
-Text/vector PDFs compress less than scans — most of their size is already-small
-fonts and vectors, not downsamplable images. Use **Screen** for the deepest cuts.
+Lower DPI/quality = smaller file, more aggressive on scans; text-heavy PDFs
+barely change since their real-text pages are never touched.
 
 ## Features
 
-- **Compress PDF** — Ghostscript (if installed) for high-quality, text-preserving
-  compression; native rasterization fallback otherwise.
+- **Compress PDF** — native PDFKit; text pages pass through untouched,
+  scanned/photo pages get rasterized at a chosen DPI/JPEG-quality.
 - **Merge PDF** — combine files; reorder by drag or ↑/↓ arrows.
 - **Split PDF** — one file per page, or by page ranges (`1-3, 5, 8-10`).
 - **PDF Pages** — rotate, delete, extract pages; PDF → images; images → PDF.
@@ -141,16 +132,17 @@ fonts and vectors, not downsamplable images. Use **Screen** for the deepest cuts
 - **Video Downloader** — *batch*: paste multiple video URLs (YouTube, TikTok, Instagram,
   Twitch, etc.) and download them as MP4 videos or extract audio as MP3 files.
   Choose quality presets (720p, 480p, etc. for video; 128/192/320 kbps for audio).
-  Requires `yt-dlp` and `ffmpeg`.
+  Uses the bundled `yt-dlp`/`ffmpeg` — nothing to install.
 - **Convert & Compress Video** — *batch*: re-encode local video files to MP4 at a
-  target quality/resolution. Native AVFoundation; falls back to `ffmpeg` (if
-  installed) for codecs it can't re-encode (e.g. VP9/AV1 from high-res YouTube
-  downloads). Preview pane has a real play/pause/scrub player (falls back to a
-  static frame if the codec can't be decoded for playback either); shows a real
-  progress % while processing, not just a spinner.
+  target quality/resolution. Native AVFoundation; falls back to the bundled
+  `ffmpeg` for codecs it can't re-encode (e.g. VP9/AV1 from high-res YouTube
+  downloads) — never touches the network. Preview pane has a real play/pause/scrub
+  player (falls back to a static frame if the codec can't be decoded for playback
+  either); shows a real progress % while processing, not just a spinner.
 - **Extract Audio (video)** — *batch*: pull the audio track out of local video
-  files as M4A (native AVFoundation) or MP3 (via ffmpeg — AVFoundation has no MP3
-  encoder). Same live preview player and real progress %.
+  files as M4A (native AVFoundation) or MP3 (via the bundled ffmpeg —
+  AVFoundation has no MP3 encoder). Same live preview player and real progress %.
+  Checks for an audio track upfront and fails cleanly if there isn't one.
 - **Trim Audio** — load one audio file, drag on the waveform to draw one or more
   cut regions (pinch to zoom for precision), play/pause with a click-to-seek
   playhead to find exact points, then **Extract Selected** (keep only the
@@ -165,14 +157,6 @@ fonts and vectors, not downsamplable images. Use **Screen** for the deepest cuts
   Audio tools use native AVFoundation (no ffmpeg) — output is AAC/M4A; MP3
   output isn't possible without ffmpeg since AVFoundation has no MP3 encoder.
 
-## Optional: stronger PDF compression
-
-```bash
-brew install ghostscript
-```
-
-The Compress PDF tool auto-detects it and shows a "Ghostscript detected" badge.
-
 ## Layout
 
 ```
@@ -184,7 +168,7 @@ Sources/
                details/metadata panel, play/pause/scrub video preview)
   Services/    PDFService, ImageService, ImageEditService, CollageService,
                FreeformService, BackgroundService, IconService, QRService,
-               OCRService, Ghostscript, AudioService, VideoService,
+               OCRService, AudioService, VideoService, YtDlp,
                WatermarkService, FaceDetectionService, FileInfoService,
                TranscriptionService
   Views/       one per sidebar tool — PDFOrganizeView.swift adds a
